@@ -1,22 +1,75 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Sidebar from './components/Sidebar';
 import InputForm from './components/InputForm';
 import OutputDisplay from './components/OutputDisplay';
 import TacticBox from './components/TacticBox';
+import CreateTemplateModal from './components/CreateTemplateModal';
 import { TEMPLATES } from './constants';
-import { Template, SavedPrompt } from './types';
+import { Template, SavedPrompt, CustomTemplateData } from './types';
 import { Menu } from 'lucide-react';
 
 const STORAGE_KEY_TEMPLATE = 'pe_template_id';
 const STORAGE_KEY_FORM = 'pe_form_data';
 const STORAGE_KEY_SAVED = 'pe_saved_prompts';
+const STORAGE_KEY_CUSTOM_TEMPLATES = 'pe_custom_templates';
 
 const App: React.FC = () => {
-  // Initialize State from LocalStorage
+  // --- STATES ---
+  
+  // Custom Templates from LocalStorage
+  const [customTemplatesData, setCustomTemplatesData] = useState<CustomTemplateData[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_CUSTOM_TEMPLATES);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Convert Custom Templates Data to useable Template objects with generate function
+  const customTemplates: Template[] = useMemo(() => {
+    return customTemplatesData.map(data => ({
+      ...data,
+      iconName: 'custom',
+      tactic: "**Custom Template**: Do người dùng tự định nghĩa.",
+      isCustom: true,
+      generate: (formData: Record<string, string>) => {
+        let text = data.templateString;
+        // Simple interpolation {{id}}
+        data.inputs.forEach(input => {
+          const val = formData[input.id] || `[${input.label}]`;
+          // Replace all occurrences
+          text = text.split(`{{${input.id}}}`).join(val);
+        });
+        return text;
+      }
+    }));
+  }, [customTemplatesData]);
+
+  // Merge System + Custom Templates
+  const allTemplates = useMemo(() => [...customTemplates, ...TEMPLATES], [customTemplates]);
+
+  // Selected Template
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(() => {
     const savedId = localStorage.getItem(STORAGE_KEY_TEMPLATE);
-    return TEMPLATES.find(t => t.id === savedId) || null;
+    // Note: This might return undefined if savedId refers to a custom template not yet loaded, 
+    // but since we initialize customTemplates synchronously from LS, it should be fine.
+    // However, if we moved customTemplates inside useEffect, this initial state would need adjustment.
+    // Since we lazy init state, we need to access localStorage for custom templates here too strictly speaking,
+    // but React batching usually handles this if we are careful. 
+    // To be safe, we reconstruct the full list inside the initializer or use useEffect.
+    // Let's rely on finding it in the combined list later or resetting.
+    return null; 
   });
+
+  // Sync selected template on mount (deferred to ensure allTemplates is ready)
+  useEffect(() => {
+    const savedId = localStorage.getItem(STORAGE_KEY_TEMPLATE);
+    if (savedId && !selectedTemplate) {
+        const found = allTemplates.find(t => t.id === savedId);
+        if (found) setSelectedTemplate(found);
+    }
+  }, [allTemplates, selectedTemplate]);
 
   const [formData, setFormData] = useState<Record<string, string>>(() => {
     try {
@@ -36,70 +89,53 @@ const App: React.FC = () => {
     }
   });
 
+  const [generatedPrompt, setGeneratedPrompt] = useState<string>("// Điền thông tin bên trái để tạo Prompt...");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
-  // Initialize generated prompt based on restored state
-  const [generatedPrompt, setGeneratedPrompt] = useState<string>(() => {
-    const savedId = localStorage.getItem(STORAGE_KEY_TEMPLATE);
-    const template = TEMPLATES.find(t => t.id === savedId);
-    
-    let savedData = {};
-    try {
-        const savedForm = localStorage.getItem(STORAGE_KEY_FORM);
-        if (savedForm) savedData = JSON.parse(savedForm);
-    } catch {}
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-    if (template) {
-        return template.generate(savedData as Record<string, string>);
-    }
-    return "// Điền thông tin bên trái để tạo Prompt...";
-  });
+  // --- EFFECTS ---
 
-  // Persist Template Selection
+  // Update generated prompt when data or template changes
   useEffect(() => {
     if (selectedTemplate) {
-      localStorage.setItem(STORAGE_KEY_TEMPLATE, selectedTemplate.id);
+        setGeneratedPrompt(selectedTemplate.generate(formData));
+        localStorage.setItem(STORAGE_KEY_TEMPLATE, selectedTemplate.id);
     } else {
-      localStorage.removeItem(STORAGE_KEY_TEMPLATE);
+        localStorage.removeItem(STORAGE_KEY_TEMPLATE);
     }
-  }, [selectedTemplate]);
+  }, [selectedTemplate, formData]);
 
-  // Persist Form Data
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_FORM, JSON.stringify(formData));
   }, [formData]);
 
-  // Persist Saved Prompts
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_SAVED, JSON.stringify(savedPrompts));
   }, [savedPrompts]);
 
-  // Handle Template Switching
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_CUSTOM_TEMPLATES, JSON.stringify(customTemplatesData));
+  }, [customTemplatesData]);
+
+
+  // --- HANDLERS ---
+
   const handleSelectTemplate = (template: Template) => {
-    // If clicking the same template, do nothing
     if (selectedTemplate?.id === template.id) {
         setIsMobileMenuOpen(false);
         return;
     }
-
     setSelectedTemplate(template);
-    setFormData({}); // Clear old data when switching templates
-    setGeneratedPrompt(template.generate({}));
+    setFormData({}); // Clear form when switching
     setIsMobileMenuOpen(false);
   };
 
   const handleInputChange = (id: string, value: string) => {
-    const newData = { ...formData, [id]: value };
-    setFormData(newData);
-    
-    if (selectedTemplate) {
-        setGeneratedPrompt(selectedTemplate.generate(newData));
-    }
+    setFormData(prev => ({ ...prev, [id]: value }));
   };
 
   const handleSavePrompt = () => {
     if (!selectedTemplate) return;
-    
     const newSavedPrompt: SavedPrompt = {
       id: Date.now().toString(),
       templateId: selectedTemplate.id,
@@ -108,32 +144,45 @@ const App: React.FC = () => {
       formData: { ...formData },
       createdAt: Date.now()
     };
-
     setSavedPrompts(prev => [...prev, newSavedPrompt]);
   };
 
   const handleLoadSavedPrompt = (prompt: SavedPrompt) => {
-    const template = TEMPLATES.find(t => t.id === prompt.templateId);
+    const template = allTemplates.find(t => t.id === prompt.templateId);
     if (template) {
       setSelectedTemplate(template);
       setFormData(prompt.formData);
-      setGeneratedPrompt(prompt.content);
+      // prompt.content is stored, but generating it fresh ensures it matches current template logic if changed
+      // but if we want exact history, we could use prompt.content. 
+      // Current architecture regenerates from generate() in useEffect. 
+      // So setting formData is enough.
+    } else {
+        alert("Template gốc của prompt này đã bị xóa hoặc không tồn tại.");
     }
   };
 
   const handleDeleteSavedPrompt = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering load
+    e.stopPropagation();
     if (window.confirm('Bạn có chắc muốn xóa prompt này?')) {
       setSavedPrompts(prev => prev.filter(p => p.id !== id));
     }
   };
 
-  // Close mobile menu when window is resized to desktop
+  const handleSaveCustomTemplate = (newTemplateData: CustomTemplateData) => {
+    setCustomTemplatesData(prev => [...prev, newTemplateData]);
+    // Optionally select it immediately
+    setTimeout(() => {
+        const newT = allTemplates.find(t => t.id === newTemplateData.id); // Wait for memo to update? Not reliable.
+        // We can construct it manually to set select
+        // But let's just let user find it in search for now or use effect?
+        // Simple: Just update data, user sees it in sidebar.
+    }, 100);
+  };
+
+  // Close mobile menu on resize
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        setIsMobileMenuOpen(false);
-      }
+      if (window.innerWidth >= 768) setIsMobileMenuOpen(false);
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -144,17 +193,18 @@ const App: React.FC = () => {
       
       {/* Sidebar */}
       <Sidebar 
-        templates={TEMPLATES} 
+        templates={allTemplates} 
         savedPrompts={savedPrompts}
         selectedTemplateId={selectedTemplate?.id || null} 
         onSelectTemplate={handleSelectTemplate}
         onLoadSavedPrompt={handleLoadSavedPrompt}
         onDeleteSavedPrompt={handleDeleteSavedPrompt}
+        onOpenCreateModal={() => setIsCreateModalOpen(true)}
         isOpen={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
 
-      {/* Overlay for mobile sidebar */}
+      {/* Mobile Overlay */}
       {isMobileMenuOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-10 md:hidden"
@@ -165,7 +215,7 @@ const App: React.FC = () => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-hidden relative">
         
-        {/* Header Mobile */}
+        {/* Mobile Header */}
         <div className="md:hidden p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900">
           <span className="font-bold text-slate-100">Prompt Generator</span>
           <button onClick={() => setIsMobileMenuOpen(true)} className="text-slate-400 p-1">
@@ -182,7 +232,7 @@ const App: React.FC = () => {
                 {selectedTemplate ? selectedTemplate.title : "Chọn một kịch bản"}
               </h2>
               <p className="text-slate-400 text-sm mb-4">
-                {selectedTemplate ? selectedTemplate.desc : "Hãy chọn danh mục bên trái để bắt đầu."}
+                {selectedTemplate ? selectedTemplate.desc : "Hãy chọn template từ danh sách hoặc tạo mới."}
               </p>
               
               {/* Badges */}
@@ -193,6 +243,11 @@ const App: React.FC = () => {
                       {tag}
                     </span>
                   ))}
+                  {selectedTemplate.isCustom && (
+                    <span className="px-2 py-1 rounded bg-indigo-900/50 border border-indigo-700 text-xs text-indigo-300 font-mono">
+                      User Created
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -219,6 +274,14 @@ const App: React.FC = () => {
 
         </div>
       </main>
+
+      {/* Create Template Modal */}
+      {isCreateModalOpen && (
+        <CreateTemplateModal 
+          onClose={() => setIsCreateModalOpen(false)}
+          onSave={handleSaveCustomTemplate}
+        />
+      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Template, SavedPrompt } from '../types';
 import { 
   Brain, 
@@ -19,7 +19,9 @@ import {
   Shield,
   FileJson,
   Layers,
-  Youtube
+  Youtube,
+  PlusCircle,
+  PencilRuler
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -29,6 +31,7 @@ interface SidebarProps {
   onSelectTemplate: (template: Template) => void;
   onLoadSavedPrompt: (prompt: SavedPrompt) => void;
   onDeleteSavedPrompt: (id: string, e: React.MouseEvent) => void;
+  onOpenCreateModal: () => void;
   isOpen: boolean;
   onCloseMobile: () => void;
 }
@@ -47,7 +50,8 @@ const IconMap: Record<string, React.FC<{ className?: string }>> = {
   "shield": Shield,
   "file-json": FileJson,
   "layers": Layers,
-  "youtube": Youtube
+  "youtube": Youtube,
+  "custom": PencilRuler
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -57,11 +61,35 @@ const Sidebar: React.FC<SidebarProps> = ({
   onSelectTemplate, 
   onLoadSavedPrompt,
   onDeleteSavedPrompt,
+  onOpenCreateModal,
   isOpen, 
   onCloseMobile 
 }) => {
   const [activeTab, setActiveTab] = useState<'templates' | 'saved'>('templates');
-  const categories = Array.from(new Set(templates.map(t => t.category)));
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Filter templates based on search term
+  const filteredTemplates = useMemo(() => {
+    if (!searchTerm) return templates;
+    const lowerTerm = searchTerm.toLowerCase();
+    return templates.filter(t => 
+      t.title.toLowerCase().includes(lowerTerm) || 
+      t.desc.toLowerCase().includes(lowerTerm) ||
+      t.tags.some(tag => tag.toLowerCase().includes(lowerTerm))
+    );
+  }, [templates, searchTerm]);
+
+  // Group templates by category
+  const groupedTemplates = useMemo(() => {
+    const groups: Record<string, Template[]> = {};
+    filteredTemplates.forEach(t => {
+      if (!groups[t.category]) groups[t.category] = [];
+      groups[t.category].push(t);
+    });
+    return groups;
+  }, [filteredTemplates]);
+
+  const categories = Object.keys(groupedTemplates);
 
   return (
     <aside 
@@ -70,18 +98,29 @@ const Sidebar: React.FC<SidebarProps> = ({
         ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}
     >
-      <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-        <div>
-            <h1 className="text-xl font-bold tracking-tight flex items-center text-slate-100">
-            <Brain className="w-5 h-5 text-sky-400 mr-2" />
-            Prompt Master
-            </h1>
-            <p className="text-xs text-slate-500 mt-1">Cấu hình cho Gemini Studio</p>
+      <div className="p-6 border-b border-slate-800">
+        <div className="flex justify-between items-center mb-4">
+            <div>
+                <h1 className="text-xl font-bold tracking-tight flex items-center text-slate-100">
+                <Brain className="w-5 h-5 text-sky-400 mr-2" />
+                Prompt Master
+                </h1>
+                <p className="text-xs text-slate-500 mt-1">Cấu hình cho Gemini Studio</p>
+            </div>
+            <button className="md:hidden text-slate-400" onClick={onCloseMobile}>&times;</button>
         </div>
-        {/* Close button for mobile */}
-        <button className="md:hidden text-slate-400" onClick={onCloseMobile}>
-             &times;
-        </button>
+        
+        {/* Search Bar */}
+        <div className="relative">
+          <input 
+            type="text"
+            placeholder="Tìm kiếm template..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-lg pl-8 pr-3 py-2 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 placeholder-slate-500"
+          />
+          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5" />
+        </div>
       </div>
 
       {/* Tabs */}
@@ -109,38 +148,57 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
       
       <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+        
+        {activeTab === 'templates' && (
+           <button 
+             onClick={() => {
+               onOpenCreateModal();
+               onCloseMobile();
+             }}
+             className="w-full mb-4 border border-dashed border-slate-600 rounded-lg p-3 text-sm text-slate-400 hover:text-white hover:border-sky-500 hover:bg-slate-800 transition-all flex items-center justify-center gap-2 group"
+           >
+             <PlusCircle className="w-4 h-4 group-hover:text-sky-400" />
+             <span>Tạo Template Mới</span>
+           </button>
+        )}
+
         {activeTab === 'templates' ? (
-          categories.map(cat => (
-            <div key={cat}>
-              <div className="px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-2">
-                {cat}
+          categories.length > 0 ? (
+            categories.map(cat => (
+              <div key={cat}>
+                <div className="px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider mt-2">
+                  {cat}
+                </div>
+                {groupedTemplates[cat].map(template => {
+                  const Icon = IconMap[template.iconName] || (template.isCustom ? IconMap['custom'] : Terminal);
+                  const isActive = selectedTemplateId === template.id;
+                  
+                  return (
+                    <button
+                      key={template.id}
+                      onClick={() => {
+                        onSelectTemplate(template);
+                        onCloseMobile();
+                      }}
+                      className={`
+                        w-full text-left px-4 py-3 rounded-lg text-sm transition-colors flex items-center gap-3 mb-1 group
+                        ${isActive 
+                          ? 'bg-sky-500 text-slate-950 font-bold shadow-lg shadow-sky-900/20' 
+                          : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                        }
+                      `}
+                    >
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-slate-900' : 'text-slate-400 group-hover:text-white'}`} />
+                      <span className="truncate">{template.title}</span>
+                      {template.isCustom && <span className="ml-auto text-[10px] bg-slate-900/30 px-1.5 py-0.5 rounded text-sky-200">User</span>}
+                    </button>
+                  );
+                })}
               </div>
-              {templates.filter(t => t.category === cat).map(template => {
-                const Icon = IconMap[template.iconName] || Terminal;
-                const isActive = selectedTemplateId === template.id;
-                
-                return (
-                  <button
-                    key={template.id}
-                    onClick={() => {
-                      onSelectTemplate(template);
-                      onCloseMobile();
-                    }}
-                    className={`
-                      w-full text-left px-4 py-3 rounded-lg text-sm transition-colors flex items-center gap-3 mb-1
-                      ${isActive 
-                        ? 'bg-sky-500 text-slate-950 font-bold shadow-lg shadow-sky-900/20' 
-                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                      }
-                    `}
-                  >
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-slate-900' : 'text-slate-400'}`} />
-                    <span className="truncate">{template.title}</span>
-                  </button>
-                );
-              })}
-            </div>
-          ))
+            ))
+          ) : (
+            <div className="text-center text-slate-500 text-xs py-10">Không tìm thấy template nào</div>
+          )
         ) : (
           <div className="space-y-2">
              {savedPrompts.length === 0 && (

@@ -10,13 +10,15 @@ export interface InputConfig {
 export interface Template {
   id: string;
   category: string;
-  iconName: string; // We will map string names to components
+  iconName: string; 
   title: string;
   desc: string;
   tags: string[];
   tactic: string;
   inputs: InputConfig[];
   generate: (data: Record<string, string>) => string;
+  isCustom?: boolean; 
+  templateString?: string; // For custom templates storage
 }
 
 export interface SavedPrompt {
@@ -26,6 +28,16 @@ export interface SavedPrompt {
   content: string;
   formData: Record<string, string>;
   createdAt: number;
+}
+
+export interface CustomTemplateData {
+  id: string;
+  title: string;
+  desc: string;
+  inputs: InputConfig[];
+  templateString: string;
+  category: string;
+  tags: string[];
 }
 
 export type Category = string;
