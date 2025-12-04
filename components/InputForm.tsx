@@ -1,6 +1,7 @@
-import React, { useRef } from 'react';
-import { Template } from '../types';
-import { ArrowLeft, Upload, X, Image as ImageIcon } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Template, InputConfig } from '../types';
+import { ArrowLeft, Upload, X, Image as ImageIcon, Wand2, Loader2 } from 'lucide-react';
+import { GoogleGenAI } from "@google/genai";
 
 interface InputFormProps {
   template: Template | null;
@@ -10,6 +11,7 @@ interface InputFormProps {
 
 const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fillingId, setFillingId] = useState<string | null>(null);
 
   const handleFileChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -30,6 +32,44 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange }) =
     }
   };
 
+  const handleMagicFill = async (input: InputConfig) => {
+    if (!template) return;
+    
+    // Basic check for API Key availability
+    if (!process.env.API_KEY) {
+        alert("Cần có API Key để sử dụng tính năng Magic Fill.");
+        return;
+    }
+
+    setFillingId(input.id);
+    try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const prompt = `Context: User is filling a form for a prompt template titled "${template.title}" - ${template.desc}.
+        
+        Task: Generate a realistic, creative, and specific example value for the input field labeled "${input.label}".
+        Hint from placeholder: "${input.placeholder}".
+        
+        Constraint: Return ONLY the example text. Do not include quotes, prefixes or explanations. Keep it concise but descriptive enough to be useful.`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+        });
+
+        const text = response.text?.trim();
+        if (text) {
+            // Remove surrounding quotes if Gemini adds them
+            const cleanText = text.replace(/^"|"$/g, '');
+            onChange(input.id, cleanText);
+        }
+    } catch (err) {
+        console.error("Magic fill error:", err);
+        // Fallback or silent fail
+    } finally {
+        setFillingId(null);
+    }
+  };
+
   if (!template) {
     return (
       <div className="space-y-4 bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-lg flex items-center justify-center h-48">
@@ -43,10 +83,29 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange }) =
   return (
     <div className="space-y-4 bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-lg">
       {template.inputs.map(input => (
-        <div key={input.id}>
-          <label className="block text-xs font-bold text-slate-400 mb-1 uppercase">
-            {input.label}
-          </label>
+        <div key={input.id} className="group/input">
+          <div className="flex justify-between items-center mb-1">
+              <label className="block text-xs font-bold text-slate-400 uppercase">
+                {input.label}
+              </label>
+
+              {/* Magic Fill Button - Only for text/textarea */}
+              {input.type !== 'image' && (
+                  <button
+                    onClick={() => handleMagicFill(input)}
+                    disabled={fillingId === input.id}
+                    className="text-[10px] flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-900/20 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-600 hover:text-white hover:border-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed opacity-0 group-hover/input:opacity-100 focus:opacity-100"
+                    title="AI tự điền mẫu (Magic Fill)"
+                  >
+                    {fillingId === input.id ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                        <Wand2 className="w-3 h-3" />
+                    )}
+                    Magic Fill
+                  </button>
+              )}
+          </div>
           
           {input.type === 'textarea' ? (
             <textarea
