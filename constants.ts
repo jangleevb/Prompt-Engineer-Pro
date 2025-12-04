@@ -120,7 +120,7 @@ Hãy tạo một bảng gồm 4 cột:
   // --- CREATIVE & MEDIA ---
   {
     id: "media_content_audit",
-    category: "Content & SEO",
+    category: "Creative & Media",
     iconName: "shield",
     title: "Content Auditor (Text & Image)",
     desc: "Phân tích nội dung đa phương tiện (ảnh/bài viết) để tối ưu hiệu quả Marketing.",
@@ -161,30 +161,34 @@ ${data.audit_text ? `- **Nội dung bổ sung/Context:** ${data.audit_text}` : '
     category: "Creative & Media",
     iconName: "image",
     title: "AI Image Caption Generator",
-    desc: "Tạo caption thu hút, chuẩn SEO cho ảnh Instagram, Facebook, LinkedIn.",
-    tags: ["Social Media", "Copywriting", "Viral"],
-    tactic: "Sử dụng **Platform-Specific Context**. Mỗi nền tảng có văn phong khác nhau (Instagram thiên về visual/emoji, LinkedIn thiên về giá trị/câu chuyện). Prompt này yêu cầu AI điều chỉnh giọng văn phù hợp và tự động gợi ý Hashtag.",
+    desc: "Tự động tạo caption từ ảnh upload hoặc mô tả văn bản.",
+    tags: ["Social Media", "Multimodal", "Viral"],
+    tactic: "Sử dụng **Multimodal Vision**. Bạn có thể upload trực tiếp bức ảnh, AI sẽ 'nhìn' và phân tích chi tiết hình ảnh để viết caption sát thực tế nhất, thay vì chỉ dựa vào mô tả văn bản. Nó cũng tự động chọn Tone phù hợp với từng nền tảng.",
     inputs: [
-      { id: "img_desc", label: "Mô tả bức ảnh", placeholder: "Ảnh tôi đang ngồi làm việc tại quán cafe, trời mưa, tâm trạng chill...", type: "textarea" },
+      { id: "image_file", label: "Upload Ảnh (Optional)", placeholder: "Tải ảnh lên để AI phân tích...", type: "image" },
+      { id: "img_desc", label: "Mô tả thêm (Context)", placeholder: "Ví dụ: Đây là buổi khai trương cửa hàng...", type: "textarea" },
       { id: "platform", label: "Nền tảng đăng", placeholder: "Instagram / LinkedIn / Facebook", type: "text" },
       { id: "tone", label: "Cảm xúc (Mood)", placeholder: "Hài hước, Deep, Truyền cảm hứng...", type: "text" }
     ],
     generate: (data) => `
-**Role:** Bạn là Social Media Manager chuyên nghiệp, người nắm giữ nghệ thuật viết caption viral.
-**Task:** Viết caption cho bức ảnh đăng trên ${data.platform || 'Mạng xã hội'}.
+**Role:** Bạn là Social Media Manager chuyên nghiệp.
+**Task:** Viết caption cho bài đăng trên ${data.platform || 'Mạng xã hội'}.
 
-**Ngữ cảnh bức ảnh (Context):**
-"${data.img_desc || '[Mô tả ảnh]'}"
+**Thông tin đầu vào:**
+${data.image_file ? '- **Hình ảnh:** (Đã đính kèm). Hãy phân tích kỹ chi tiết trong ảnh để viết.' : ''}
+${data.img_desc ? `- **Mô tả/Bối cảnh:** ${data.img_desc}` : ''}
 
-**Tone & Mood:** ${data.tone || 'Tự nhiên'}.
+**Tone & Mood:** ${data.tone || 'Tự nhiên, thu hút'}.
 
 **Yêu cầu Output:**
 Hãy viết 3 lựa chọn caption khác nhau:
 1. **Option 1 (Ngắn gọn - Punchy):** Dành cho người lướt nhanh, 1 câu duy nhất cực chất.
-2. **Option 2 (Storytelling - Engage):** Kể một câu chuyện nhỏ hoặc đặt câu hỏi để tăng tương tác (Comments).
-3. **Option 3 (Inspirational - Value):** Chia sẻ một bài học hoặc quote hay liên quan.
+2. **Option 2 (Storytelling - Engage):** Kể một câu chuyện nhỏ hoặc đặt câu hỏi dựa trên chi tiết trong ảnh để tăng tương tác.
+3. **Option 3 (Inspirational/Promotional):** Chia sẻ giá trị hoặc bán hàng khéo léo.
 
-**Lưu ý:** Thêm các emoji phù hợp và một bộ 15 Hashtag tối ưu khả năng tiếp cận (Reach) ở cuối.
+**Lưu ý:** 
+- Sử dụng emoji phù hợp với cảm xúc.
+- Tạo một block 15 Hashtag tối ưu Reach ở cuối.
 `
   },
   {
@@ -192,25 +196,29 @@ Hãy viết 3 lựa chọn caption khác nhau:
     category: "Creative & Media",
     iconName: "captions",
     title: "Video Subtitle Reformatter",
-    desc: "Tối ưu văn bản thành dạng phụ đề (Subtitles) cho video ngắn.",
+    desc: "Tạo phụ đề video ngắn (TikTok/Reels) từ văn bản thô.",
     tags: ["Video Editing", "Reels/TikTok", "Retention"],
     tactic: "Chiến thuật **Chunking & Highlighting**. Để giữ chân người xem video ngắn, phụ đề cần ngắt nhịp nhanh (3-5 từ/dòng) và nhấn mạnh từ khóa. Prompt này biến văn bản thô thành kịch bản sub đã tối ưu cho Editor.",
     inputs: [
       { id: "raw_text", label: "Nội dung lời thoại (Transcript)", placeholder: "Xin chào các bạn hôm nay mình sẽ hướng dẫn...", type: "textarea" },
+      { id: "visual_context", label: "Bối cảnh Video (Optional)", placeholder: "Nhân vật đang ngồi trước máy tính, nói nhanh...", type: "text" },
       { id: "style", label: "Phong cách hiển thị", placeholder: "Alex Hormozi style (Nhanh, in đậm keyword)", type: "text" }
     ],
     generate: (data) => `
 **Role:** Bạn là Video Editor chuyên làm sub cho các kênh TikTok/Reels triệu view.
 **Task:** Format lại đoạn văn bản sau thành dạng phụ đề (Subtitles) tối ưu cho video ngắn.
-**Phong cách:** ${data.style || 'Nhanh, gãy gọn'}.
 
 **Input Text:**
 "${data.raw_text || '[Transcript]'}"
 
+${data.visual_context ? `**Visual Context:** ${data.visual_context} (Hãy chèn emoji phù hợp với hành động này)` : ''}
+
+**Phong cách:** ${data.style || 'Nhanh, gãy gọn'}.
+
 **Quy tắc Format (Bắt buộc):**
 1. **Ngắt dòng (Line Break):** Mỗi dòng sub không quá 5 từ. Ngắt đúng nhịp nói (Natural pause).
 2. **Highlight:** Đặt các từ khóa quan trọng (Keywords) trong dấu **đậm** để Editor biết cần đổi màu hoặc làm to lên.
-3. **Emoji:** Chèn emoji minh họa ở cuối các câu quan trọng.
+3. **Emoji:** Chèn emoji minh họa ở cuối các câu quan trọng hoặc thể hiện cảm xúc.
 
 **Output Example:**
 Xin chào **các bạn** 👋
@@ -223,27 +231,39 @@ Cách kiếm **1000$** đầu tiên 💰
     category: "Creative & Media",
     iconName: "palette",
     title: "YouTube Thumbnail Consultant",
-    desc: "Đề xuất ý tưởng Thumbnail tối ưu CTR (Tỷ lệ nhấp).",
+    desc: "Audit thumbnail hiện tại hoặc đề xuất ý tưởng mới tối ưu CTR.",
     tags: ["YouTube Strategy", "Design", "Psychology"],
-    tactic: "Sử dụng **Visual Descriptive Prompting**. Thay vì ý tưởng trừu tượng, AI sẽ mô tả chi tiết các yếu tố thị giác: Tiền cảnh (Nhân vật làm gì?), Hậu cảnh (Màu gì?), Text (Viết gì ngắn gọn?) dựa trên tâm lý học hành vi.",
+    tactic: "Sử dụng **Visual Analysis**. Nếu bạn upload ảnh thumbnail nháp, AI sẽ đóng vai chuyên gia thiết kế để 'chấm điểm' và chỉ ra lỗi sai. Nếu không, AI sẽ dùng **Visual Descriptive Prompting** để mô tả ý tưởng thumbnail mới dựa trên tiêu đề.",
     inputs: [
+      { id: "current_thumb", label: "Upload Thumbnail nháp (Optional)", placeholder: "Tải ảnh thumbnail hiện tại lên để audit...", type: "image" },
       { id: "video_title", label: "Tiêu đề Video", placeholder: "Cách kiếm 1000$ đầu tiên trên Upwork", type: "text" },
       { id: "target_audience", label: "Đối tượng khán giả", placeholder: "Sinh viên, Freelancer mới bắt đầu", type: "text" }
     ],
     generate: (data) => `
 **Role:** Bạn là YouTube Strategist và Graphic Designer hàng đầu.
-**Task:** Đề xuất 3 ý tưởng Thumbnail có CTR (Click-Through Rate) cao nhất cho video:
-**Title:** "${data.video_title || '[Tiêu đề]'}"
-**Audience:** ${data.target_audience || '[Khán giả]'}
+${data.current_thumb 
+  ? `**Mode:** AUDIT & IMPROVE (Phân tích ảnh thumbnail được cung cấp)` 
+  : `**Mode:** IDEATION (Đề xuất ý tưởng mới)`
+}
 
-**Yêu cầu Output:**
-Với mỗi ý tưởng, hãy mô tả chi tiết 4 lớp (Layers):
-1. **Background:** Màu sắc chủ đạo (Nên dùng màu tương phản như Vàng/Đỏ/Xanh neon), bối cảnh.
-2. **Foreground (Nhân vật):** Biểu cảm khuôn mặt (Shock, Vui sướng, Nghi ngờ...), hướng mắt nhìn, hành động tay.
-3. **Text Overlay:** Văn bản trên hình (ngắn dưới 5 từ, gây tò mò).
-4. **Psychology:** Tại sao thiết kế này lại khiến người xem muốn click?
+**Thông tin Video:**
+- **Title:** "${data.video_title || '[Tiêu đề]'}"
+- **Audience:** ${data.target_audience || '[Khán giả]'}
 
-Hãy đưa ra 3 concept: (1) Concept "Kết quả/Bằng chứng", (2) Concept "Cảnh báo/Sai lầm", (3) Concept "So sánh/Đối chiếu".
+${data.current_thumb ? `
+**Yêu cầu Audit (Dựa trên ảnh đã upload):**
+1. **First Impression:** Thumbnail này có gây chú ý trong 0.5s đầu tiên không? Điểm nhìn (Focal point) đang ở đâu?
+2. **Text Readability:** Văn bản trên hình có dễ đọc trên mobile không? Có quá nhiều chữ không?
+3. **Color & Contrast:** Độ tương phản có đủ tốt để nổi bật trên nền trắng/đen của YouTube không?
+4. **Improvement Plan:** Đề xuất 3 thay đổi cụ thể để tăng CTR ngay lập tức.
+` : `
+**Yêu cầu Đề xuất Ý tưởng (Ideation):**
+Hãy đưa ra 3 concept thumbnail khác nhau. Với mỗi ý tưởng, mô tả chi tiết:
+1. **Background:** Màu sắc và bối cảnh.
+2. **Foreground (Nhân vật/Chủ thể):** Biểu cảm, hành động.
+3. **Text Overlay:** Văn bản ngắn gọn (dưới 5 từ).
+4. **Psychology:** Tại sao thiết kế này khiến người xem muốn click?
+`}
 `
   },
   {
