@@ -4,6 +4,7 @@ export const TEMPLATES: Template[] = [
   // --- MMO & ADS ---
   {
     id: "mmo_roi",
+    source: "system",
     category: "MMO & Ads",
     iconName: "chart-line",
     title: "Tối Ưu Dòng Tiền & ROI",
@@ -35,6 +36,7 @@ ${data.user_behavior_data ? '5' : '4'}. **Chiến thuật hành động:** ${dat
   },
   {
     id: "mmo_product_desc",
+    source: "system",
     category: "MMO & Ads",
     iconName: "shopping-bag",
     title: "Mô Tả Sản Phẩm Thôi Miên",
@@ -67,6 +69,7 @@ ${data.user_behavior_data ? '5' : '4'}. **Chiến thuật hành động:** ${dat
   },
   {
     id: "mmo_google_ads",
+    source: "system",
     category: "MMO & Ads",
     iconName: "target",
     title: "Google Ads SKAG Generator",
@@ -97,6 +100,7 @@ Hãy trình bày dưới dạng bảng để tôi dễ copy.
   },
   {
     id: "mmo_affiliate_review",
+    source: "system",
     category: "MMO & Ads",
     iconName: "file-text",
     title: "Affiliate Product Review",
@@ -128,6 +132,7 @@ Hãy trình bày dưới dạng bảng để tôi dễ copy.
   },
   {
     id: "mmo_fb_Ads",
+    source: "system",
     category: "MMO & Ads",
     iconName: "target",
     title: "Facebook Ads Copywriter",
@@ -158,6 +163,7 @@ Hãy trình bày dưới dạng bảng để tôi dễ copy.
   },
   {
     id: "mmo_content_reels",
+    source: "system",
     category: "MMO & Ads",
     iconName: "video",
     title: "Nhà Máy Sản Xuất Kịch Bản Reels",
@@ -189,6 +195,7 @@ Hãy tạo một bảng gồm 4 cột:
   },
   {
     id: "content_youtube_script",
+    source: "system",
     category: "MMO & Ads",
     iconName: "youtube",
     title: "Kịch Bản YouTube Long-form",
@@ -216,6 +223,7 @@ Hãy tạo một bảng gồm 4 cột:
   // --- CREATIVE & MEDIA ---
   {
     id: "media_content_audit",
+    source: "system",
     category: "Creative & Media",
     iconName: "shield",
     title: "Content Auditor (Text & Image)",
@@ -254,6 +262,7 @@ ${data.audit_text ? `- **Nội dung bổ sung/Context:** ${data.audit_text}` : '
   },
   {
     id: "media_img_caption",
+    source: "system",
     category: "Creative & Media",
     iconName: "image",
     title: "AI Image Caption Generator",
@@ -291,6 +300,7 @@ Hãy viết 3 lựa chọn caption khác nhau:
   },
   {
     id: "media_video_sub",
+    source: "system",
     category: "Creative & Media",
     iconName: "captions",
     title: "Video Subtitle Reformatter",
@@ -327,6 +337,7 @@ Cách kiếm **1000$** đầu tiên 💰
   },
   {
     id: "media_thumbnail",
+    source: "system",
     category: "Creative & Media",
     iconName: "palette",
     title: "YouTube Thumbnail Consultant",
@@ -369,6 +380,7 @@ Hãy đưa ra 3 concept thumbnail khác nhau. Với mỗi ý tưởng, mô tả 
   },
   {
     id: "media_infographic",
+    source: "system",
     category: "Creative & Media",
     iconName: "layout-template",
     title: "Infographic Prompt Master",
@@ -406,6 +418,7 @@ Hãy viết 3 Prompt khác nhau (dùng cho Midjourney v6 hoặc Gemini Image Gen
   // --- CODER & TECH ---
   {
     id: "tech_coder_tool",
+    source: "system",
     category: "Coder & Tech",
     iconName: "code",
     title: "Kiến Trúc Sư Tool Automation",
@@ -438,6 +451,7 @@ Hãy cung cấp trọn bộ cấu trúc dự án bao gồm nội dung các file 
   },
   {
     id: "tech_code_translate",
+    source: "system",
     category: "Coder & Tech",
     iconName: "shuffle",
     title: "Code Translator (Đa Ngôn Ngữ)",
@@ -466,6 +480,7 @@ ${data.source_code || '[Code]'}
   },
   {
     id: "tech_security_audit",
+    source: "system",
     category: "Coder & Tech",
     iconName: "lock",
     title: "Security Code Auditor",
@@ -494,6 +509,7 @@ ${data.suspicious_code || '[Code]'}
   },
   {
     id: "tech_mermaid_diagram",
+    source: "system",
     category: "Coder & Tech",
     iconName: "layers",
     title: "Hệ Thống Hóa bằng Mermaid.js",
@@ -518,6 +534,7 @@ Chỉ trả về khối code Mermaid (bắt đầu bằng \`\`\`mermaid) hợp l
   },
   {
     id: "tech_bug_fix",
+    source: "system",
     category: "Coder & Tech",
     iconName: "bug",
     title: "Bác Sĩ Sửa Lỗi (Debugger)",
@@ -550,6 +567,7 @@ ${data.code_snippet || '[Code]'}
   },
   {
     id: "tech_sql_builder",
+    source: "system",
     category: "Coder & Tech",
     iconName: "database",
     title: "SQL Query Master",
@@ -578,6 +596,7 @@ ${data.schema || '[Schema]'}
   },
   {
     id: "tech_api_docs",
+    source: "system",
     category: "Coder & Tech",
     iconName: "file-json",
     title: "API Documentation Generator",
@@ -608,6 +627,7 @@ Hãy trình bày dưới dạng **Markdown** (tương thích Swagger/OpenAPI) ba
   },
   {
     id: "tech_regex_gen",
+    source: "system",
     category: "Coder & Tech",
     iconName: "search",
     title: "Regex Wizard",
@@ -633,6 +653,7 @@ ${data.example || '[Ví dụ]'}
   },
   {
     id: "tech_unit_test",
+    source: "system",
     category: "Coder & Tech",
     iconName: "shield",
     title: "Unit Test Generator",
@@ -659,6 +680,7 @@ ${data.function_code || '[Code]'}
   },
   {
     id: "tech_refactor",
+    source: "system",
     category: "Coder & Tech",
     iconName: "layers",
     title: "Code Refactoring Expert",
@@ -687,6 +709,7 @@ ${data.dirty_code || '[Code cũ]'}
   // --- CONTENT & SEO ---
   {
     id: "content_seo_article",
+    source: "system",
     category: "Content & SEO",
     iconName: "file-text",
     title: "SEO Blog Post Writer",
@@ -717,6 +740,7 @@ Hãy viết nội dung chi tiết, hữu ích, không viết chung chung.
   },
   {
     id: "biz_cold_email",
+    source: "system",
     category: "Business & Sales",
     iconName: "mail",
     title: "Cold Email Outreach",
@@ -745,6 +769,7 @@ Hãy viết nội dung chi tiết, hữu ích, không viết chung chung.
   },
   {
     id: "biz_swot_analysis",
+    source: "system",
     category: "Business & Sales",
     iconName: "search",
     title: "SWOT Analysis Pro",
@@ -781,6 +806,7 @@ Hãy viết nội dung chi tiết, hữu ích, không viết chung chung.
   // --- EXISTING TEMPLATES BELOW (Keep existing ones) ---
   {
     id: "chatbot_training",
+    source: "system",
     category: "Chatbot & CS",
     iconName: "robot",
     title: "Huấn Luyện AI Chatbot (n8n)",

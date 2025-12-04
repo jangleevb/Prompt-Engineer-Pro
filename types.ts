@@ -1,5 +1,7 @@
 import { LucideIcon } from 'lucide-react';
 
+export type TemplateSource = 'system' | 'local' | 'online';
+
 export interface InputConfig {
   id: string;
   label: string;
@@ -18,7 +20,8 @@ export interface Template {
   inputs: InputConfig[];
   generate: (data: Record<string, string>) => string;
   isCustom?: boolean; 
-  templateString?: string; // For custom templates storage
+  templateString?: string; // For custom/online templates storage
+  source: TemplateSource; // New property to distinguish origin
 }
 
 export interface SavedPrompt {

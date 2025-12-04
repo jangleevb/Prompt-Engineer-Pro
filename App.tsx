@@ -13,10 +13,14 @@ const STORAGE_KEY_FORM = 'pe_form_data';
 const STORAGE_KEY_SAVED = 'pe_saved_prompts';
 const STORAGE_KEY_CUSTOM_TEMPLATES = 'pe_custom_templates';
 
+// Example Community Store URL (You can replace this with your own GitHub Raw Gist URL)
+const COMMUNITY_TEMPLATES_URL = 'https://raw.githubusercontent.com/google-gemini/cookbook/main/examples/json/prompts.json'; 
+// Note: Since the above is a dummy placeholder for structure, we might simulate a fetch error or handle it gracefully.
+
 const App: React.FC = () => {
   // --- STATES ---
   
-  // Custom Templates from LocalStorage
+  // 1. LOCAL DATA (Offline - User Created)
   const [customTemplatesData, setCustomTemplatesData] = useState<CustomTemplateData[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_CUSTOM_TEMPLATES);
@@ -26,37 +30,58 @@ const App: React.FC = () => {
     }
   });
 
-  // Convert Custom Templates Data to useable Template objects with generate function
-  const customTemplates: Template[] = useMemo(() => {
-    return customTemplatesData.map(data => ({
-      ...data,
-      iconName: 'custom',
-      tactic: "**Custom Template**: Do người dùng tự định nghĩa.",
-      isCustom: true,
-      generate: (formData: Record<string, string>) => {
-        let text = data.templateString;
-        // Simple interpolation {{id}}
-        data.inputs.forEach(input => {
-          if (input.type === 'image') return; // Do not interpolate image base64 into text
-          const val = formData[input.id] || `[${input.label}]`;
-          // Replace all occurrences
-          text = text.split(`{{${input.id}}}`).join(val);
-        });
-        return text;
-      }
-    }));
+  // 2. ONLINE DATA (Cloud - Community Store)
+  const [onlineTemplatesData, setOnlineTemplatesData] = useState<CustomTemplateData[]>([]);
+  const [isFetchingOnline, setIsFetchingOnline] = useState(false);
+
+  // --- TEMPLATE GENERATION LOGIC ---
+
+  // Helper to convert raw data (JSON) to actionable Template objects
+  const convertToTemplate = (data: CustomTemplateData, source: 'local' | 'online'): Template => ({
+    ...data,
+    iconName: source === 'local' ? 'custom' : 'globe',
+    tactic: source === 'local' 
+      ? "**Custom Template**: Do người dùng tự định nghĩa." 
+      : "**Community Template**: Được tải từ Online Store.",
+    isCustom: true,
+    source: source,
+    generate: (formData: Record<string, string>) => {
+      let text = data.templateString;
+      // Simple interpolation {{id}}
+      data.inputs.forEach(input => {
+        if (input.type === 'image') return; 
+        const val = formData[input.id] || `[${input.label}]`;
+        text = text.split(`{{${input.id}}}`).join(val);
+      });
+      return text;
+    }
+  });
+
+  // 3. SYSTEM DATA (Offline - Hardcoded)
+  const systemTemplates: Template[] = useMemo(() => {
+    return TEMPLATES;
+  }, []);
+
+  const localTemplates: Template[] = useMemo(() => {
+    return customTemplatesData.map(data => convertToTemplate(data, 'local'));
   }, [customTemplatesData]);
 
-  // Merge System + Custom Templates
-  const allTemplates = useMemo(() => [...customTemplates, ...TEMPLATES], [customTemplates]);
+  const onlineTemplates: Template[] = useMemo(() => {
+    return onlineTemplatesData.map(data => convertToTemplate(data, 'online'));
+  }, [onlineTemplatesData]);
 
-  // Selected Template
+  // MERGE ALL SOURCES
+  const allTemplates = useMemo(() => {
+    return [...systemTemplates, ...localTemplates, ...onlineTemplates];
+  }, [systemTemplates, localTemplates, onlineTemplates]);
+
+  // Selected Template State
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(() => {
     const savedId = localStorage.getItem(STORAGE_KEY_TEMPLATE);
     return null; 
   });
 
-  // Sync selected template on mount (deferred to ensure allTemplates is ready)
+  // Sync selected template on mount
   useEffect(() => {
     const savedId = localStorage.getItem(STORAGE_KEY_TEMPLATE);
     if (savedId && !selectedTemplate) {
@@ -90,12 +115,10 @@ const App: React.FC = () => {
 
   // --- EFFECTS ---
 
-  // Update generated prompt and extract images when data or template changes
   useEffect(() => {
     if (selectedTemplate) {
         setGeneratedPrompt(selectedTemplate.generate(formData));
         
-        // Extract images from formData based on template inputs
         const images: string[] = [];
         selectedTemplate.inputs.forEach(input => {
             if (input.type === 'image' && formData[input.id]) {
@@ -122,7 +145,6 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_CUSTOM_TEMPLATES, JSON.stringify(customTemplatesData));
   }, [customTemplatesData]);
-
 
   // --- HANDLERS ---
 
@@ -174,6 +196,94 @@ const App: React.FC = () => {
     setCustomTemplatesData(prev => [...prev, newTemplateData]);
   };
 
+  // --- ONLINE / IMPORT / EXPORT LOGIC ---
+
+  const handleFetchOnlineTemplates = async () => {
+    setIsFetchingOnline(true);
+    try {
+        // For demonstration, we'll simulate a fetch since the URL above might not have the exact schema we need.
+        // In a real app, you would fetch(COMMUNITY_TEMPLATES_URL)
+        
+        // Simulating network delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Mock Data simulation
+        const mockOnlineData: CustomTemplateData[] = [
+            {
+                id: "online_seo_expert",
+                title: "SEO Keyword Researcher (Online)",
+                desc: "Từ cộng đồng: Nghiên cứu từ khóa long-tail.",
+                category: "Marketing",
+                tags: ["SEO", "Community"],
+                inputs: [{ id: "topic", label: "Chủ đề", placeholder: "Giày chạy bộ", type: "text" }],
+                templateString: "Hãy đóng vai chuyên gia SEO. Nghiên cứu 10 từ khóa long-tail cho chủ đề: {{topic}}."
+            }
+        ];
+        
+        setOnlineTemplatesData(mockOnlineData);
+        alert(`Đã tải thành công ${mockOnlineData.length} template từ Online Store.`);
+    } catch (error) {
+        console.error("Failed to fetch online templates", error);
+        alert("Không thể kết nối đến Online Store.");
+    } finally {
+        setIsFetchingOnline(false);
+    }
+  };
+
+  const handleExportTemplates = () => {
+    if (customTemplatesData.length === 0) {
+      alert("Bạn chưa có template cá nhân (Local) nào để xuất.");
+      return;
+    }
+    const dataStr = JSON.stringify(customTemplatesData, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `backup_my_templates_${Date.now()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleImportTemplates = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        if (!Array.isArray(json)) {
+          throw new Error("Format không hợp lệ: Root phải là Array.");
+        }
+        
+        // Validate structure
+        const validTemplates = json.filter((t: any) => t.id && t.title && t.inputs && t.templateString);
+        
+        if (validTemplates.length === 0) {
+           throw new Error("Không tìm thấy template hợp lệ trong file.");
+        }
+
+        // Avoid duplicates ID
+        const currentIds = new Set(customTemplatesData.map(t => t.id));
+        const newTemplates = validTemplates.filter((t: CustomTemplateData) => !currentIds.has(t.id));
+
+        if (newTemplates.length === 0) {
+          alert("Tất cả template trong file đã tồn tại.");
+        } else {
+          setCustomTemplatesData(prev => [...prev, ...newTemplates]);
+          alert(`Đã nhập thành công ${newTemplates.length} template.`);
+        }
+      } catch (err: any) {
+        alert("Lỗi khi nhập file: " + err.message);
+      } finally {
+        e.target.value = '';
+      }
+    };
+    reader.readAsText(file);
+  };
+
   // Close mobile menu on resize
   useEffect(() => {
     const handleResize = () => {
@@ -186,7 +296,7 @@ const App: React.FC = () => {
   return (
     <div className="h-screen flex flex-col md:flex-row overflow-hidden bg-slate-950 text-slate-200">
       
-      {/* Sidebar (Includes Overlay) */}
+      {/* Sidebar */}
       <Sidebar 
         templates={allTemplates} 
         savedPrompts={savedPrompts}
@@ -195,6 +305,10 @@ const App: React.FC = () => {
         onLoadSavedPrompt={handleLoadSavedPrompt}
         onDeleteSavedPrompt={handleDeleteSavedPrompt}
         onOpenCreateModal={() => setIsCreateModalOpen(true)}
+        onExportTemplates={handleExportTemplates}
+        onImportTemplates={handleImportTemplates}
+        onFetchOnline={handleFetchOnlineTemplates}
+        isFetchingOnline={isFetchingOnline}
         isOpen={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
@@ -204,7 +318,7 @@ const App: React.FC = () => {
         
         {/* Mobile Header */}
         <div className="md:hidden p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900">
-          <span className="font-bold text-slate-100">Prompt Generator</span>
+          <span className="font-bold text-slate-100">Prompt Engineer Pro</span>
           <button onClick={() => setIsMobileMenuOpen(true)} className="text-slate-400 p-1 hover:text-white transition-colors">
             <Menu className="w-6 h-6" />
           </button>
@@ -230,11 +344,15 @@ const App: React.FC = () => {
                       {tag}
                     </span>
                   ))}
-                  {selectedTemplate.isCustom && (
-                    <span className="px-2 py-1 rounded bg-indigo-900/50 border border-indigo-700 text-xs text-indigo-300 font-mono">
-                      User Created
-                    </span>
-                  )}
+                  {/* Source Badge */}
+                  <span className={`px-2 py-1 rounded border text-xs font-mono uppercase ${
+                      selectedTemplate.source === 'local' ? 'bg-indigo-900/50 border-indigo-700 text-indigo-300' :
+                      selectedTemplate.source === 'online' ? 'bg-green-900/50 border-green-700 text-green-300' :
+                      'bg-slate-800 border-slate-700 text-slate-400'
+                  }`}>
+                    {selectedTemplate.source === 'local' ? 'Local / Personal' : 
+                     selectedTemplate.source === 'online' ? 'Online / Community' : 'System / Built-in'}
+                  </span>
                 </div>
               )}
             </div>
