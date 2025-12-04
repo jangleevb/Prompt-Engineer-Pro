@@ -186,7 +186,7 @@ const App: React.FC = () => {
   return (
     <div className="h-screen flex flex-col md:flex-row overflow-hidden bg-slate-950 text-slate-200">
       
-      {/* Sidebar */}
+      {/* Sidebar (Includes Overlay) */}
       <Sidebar 
         templates={allTemplates} 
         savedPrompts={savedPrompts}
@@ -197,15 +197,6 @@ const App: React.FC = () => {
         onOpenCreateModal={() => setIsCreateModalOpen(true)}
         isOpen={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}
-      />
-
-      {/* Mobile Overlay with smooth transition */}
-      <div 
-        className={`fixed inset-0 bg-black/60 z-30 md:hidden transition-opacity duration-300 ease-in-out backdrop-blur-sm ${
-          isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setIsMobileMenuOpen(false)}
-        aria-hidden="true"
       />
 
       {/* Main Content */}

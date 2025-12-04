@@ -34,7 +34,100 @@ ${data.user_behavior_data ? '5' : '4'}. **Chiến thuật hành động:** ${dat
 `
   },
   {
-    id: "mmo_fb_ads",
+    id: "mmo_product_desc",
+    category: "MMO & Ads",
+    iconName: "shopping-bag",
+    title: "Mô Tả Sản Phẩm Thôi Miên",
+    desc: "Viết mô tả sản phẩm E-commerce (Shopee, Shopify) đánh trúng tử huyệt cảm xúc.",
+    tags: ["Copywriting", "E-commerce", "Sales"],
+    tactic: "Sử dụng kỹ thuật **Benefit-Driven Copy** (Lợi ích trên hết). Thay vì liệt kê thông số kỹ thuật khô khan (Features), AI sẽ chuyển hóa chúng thành lợi ích sát sườn (Benefits) và vẽ ra viễn cảnh tươi đẹp khi khách hàng sở hữu sản phẩm (Future Pacing).",
+    inputs: [
+      { id: "product_name", label: "Tên sản phẩm", placeholder: "Máy mát xa cổ vai gáy Xiaomi", type: "text" },
+      { id: "features", label: "Tính năng kỹ thuật", placeholder: "Pin 2000mAh, nhiệt độ 42 độ C, 3 chế độ rung...", type: "textarea" },
+      { id: "target_customer", label: "Khách hàng mục tiêu", placeholder: "Dân văn phòng ngồi nhiều, hay đau mỏi", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là chuyên gia Copywriting hàng đầu thế giới theo phong cách Dan Kennedy.
+**Task:** Viết mô tả sản phẩm cho trang bán hàng E-commerce để tối đa hóa tỷ lệ chuyển đổi.
+
+**Sản phẩm:** ${data.product_name || '[Tên sản phẩm]'}
+**Đối tượng:** ${data.target_customer || '[Khách hàng]'}
+**Thông số kỹ thuật (Input):** ${data.features || '[Tính năng]'}
+
+**Yêu cầu viết (Cấu trúc thôi miên):**
+1. **Headline:** Một câu tiêu đề chứa lợi ích lớn nhất (Big Promise).
+2. **The Problem:** Mô tả nỗi đau của khách hàng một cách đồng cảm (Ví dụ: Cảm giác đau nhói sau 8 tiếng ngồi máy tính...).
+3. **The Solution (Benefit Stacking):** Chuyển đổi từng tính năng kỹ thuật thành lợi ích cảm xúc.
+   - *Ví dụ:* Đừng nói "Pin 2000mAh", hãy nói "Dùng cả tuần chỉ với 1 lần sạc, không lo hết pin giữa chừng".
+4. **Social Proof (Giả lập):** Một đoạn trích dẫn review ngắn gọn (Testimonial).
+5. **Call To Action:** Kêu gọi mua hàng khan hiếm.
+
+**Tone:** Thấu hiểu, chuyên gia, thúc giục.
+`
+  },
+  {
+    id: "mmo_google_ads",
+    category: "MMO & Ads",
+    iconName: "target",
+    title: "Google Ads SKAG Generator",
+    desc: "Tạo cấu trúc nhóm quảng cáo Single Keyword (SKAG) để tăng điểm chất lượng.",
+    tags: ["SEM", "Google Ads", "PPC"],
+    tactic: "Sử dụng **Constraint Prompting** (Ràng buộc ký tự). Google Ads rất khắt khe về số lượng ký tự (Headline 30, Desc 90). Prompt này ép AI phải tuân thủ nghiêm ngặt giới hạn đó, đồng thời chèn từ khóa vào Headline 1 để tối ưu Relevance Score.",
+    inputs: [
+      { id: "keyword", label: "Từ khóa chính (Keyword)", placeholder: "dịch vụ chuyển nhà trọn gói", type: "text" },
+      { id: "usp", label: "Điểm mạnh (USP)", placeholder: "Giá rẻ, cam kết không mất đồ, phục vụ 24/7", type: "text" },
+      { id: "landing_page", label: "Nội dung Landing Page (Tóm tắt)", placeholder: "Giảm giá 20% cho sinh viên", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Chuyên gia Google Ads (SEM Specialist).
+**Task:** Viết mẫu quảng cáo tìm kiếm (Search Ads) cho từ khóa: "${data.keyword || '[Keyword]'}".
+**USP:** ${data.usp || '[USP]'}
+
+**Yêu cầu nghiêm ngặt (Character Limits):**
+- Headline: Tối đa 30 ký tự.
+- Description: Tối đa 90 ký tự.
+
+**Output:** Hãy tạo 3 biến thể (Variations) theo cấu trúc sau:
+1. **Variation 1 (Focus Relevance):** Headline 1 phải chứa chính xác từ khóa "${data.keyword}".
+2. **Variation 2 (Focus Benefit):** Tập trung vào USP và khuyến mãi.
+3. **Variation 3 (CTR Optimized):** Dùng câu hỏi hoặc CTA mạnh để kích thích click.
+
+Hãy trình bày dưới dạng bảng để tôi dễ copy.
+`
+  },
+  {
+    id: "mmo_affiliate_review",
+    category: "MMO & Ads",
+    iconName: "file-text",
+    title: "Affiliate Product Review",
+    desc: "Viết bài review sản phẩm Affiliate khách quan, không bị 'sale' quá đà.",
+    tags: ["Affiliate Marketing", "Content", "Review"],
+    tactic: "Sử dụng **Balanced Perspective Strategy** (Góc nhìn cân bằng). Người đọc rất ghét bài review chỉ toàn khen. Prompt này yêu cầu AI phải tìm ra (hoặc giả định) cả nhược điểm (Cons) để bài viết trông chân thực (Authentic), từ đó tăng niềm tin và tỷ lệ click link Affiliate.",
+    inputs: [
+      { id: "product", label: "Sản phẩm Review", placeholder: "Hosting Namecheap", type: "text" },
+      { id: "pros", label: "Ưu điểm (Pros)", placeholder: "Giá rẻ, support nhanh, uptime tốt", type: "text" },
+      { id: "cons", label: "Nhược điểm (Cons - Bắt buộc)", placeholder: "Server đặt xa VN nên hơi chậm, giao diện cũ", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là một Blogger công nghệ uy tín, người chuyên review sản phẩm một cách trung thực.
+**Task:** Viết bài đánh giá (Review) sản phẩm: "${data.product || '[Sản phẩm]'}".
+
+**Thông tin:**
+- **Pros:** ${data.pros || '[Ưu điểm]'}
+- **Cons:** ${data.cons || '[Nhược điểm]'}
+
+**Cấu trúc bài viết (Trust-Building Layout):**
+1. **Introduction:** Đặt vấn đề và nói rõ bài này dành cho ai? (Ví dụ: "Nếu bạn là newbie, đây là hosting dành cho bạn...").
+2. **Key Features (Deep Dive):** Phân tích 3 tính năng quan trọng nhất.
+3. **The Ugly Truth (Quan trọng):** Nói thẳng về các nhược điểm (Cons). Đừng giấu giếm. Điều này giúp lọc khách hàng và tăng uy tín.
+4. **Comparison:** So sánh nhanh với 1 đối thủ cùng phân khúc.
+5. **Final Verdict (Kết luận):** Ai NÊN mua và ai KHÔNG NÊN mua?
+
+**Tone:** Khách quan, trải nghiệm thực tế (dùng từ "tôi thấy", "theo kinh nghiệm của tôi").
+`
+  },
+  {
+    id: "mmo_fb_Ads",
     category: "MMO & Ads",
     iconName: "target",
     title: "Facebook Ads Copywriter",
@@ -74,12 +167,15 @@ ${data.user_behavior_data ? '5' : '4'}. **Chiến thuật hành động:** ${dat
     inputs: [
       { id: "product_name", label: "Tên sản phẩm/Dịch vụ", placeholder: "Nồi chiên không dầu Lock&Lock 5L", type: "text" },
       { id: "target_audience", label: "Khách hàng mục tiêu", placeholder: "Mẹ bỉm sữa, sinh viên ở trọ...", type: "text" },
-      { id: "platform", label: "Nền tảng", placeholder: "Facebook Reels / TikTok", type: "text" }
+      { id: "platform", label: "Nền tảng", placeholder: "Facebook Reels / TikTok", type: "text" },
+      { id: "viral_element", label: "Viral Hook / Trending Audio (Optional)", placeholder: "Nhạc nền trending, câu mở đầu gây sốc...", type: "text" }
     ],
     generate: (data) => `
 **Role:** Bạn là Đạo diễn Video ngắn (Short-form Video Director) chuyên tạo các nội dung viral triệu view trên ${data.platform || '[Nền tảng]'}.
 **Task:** Viết kịch bản video bán hàng cho sản phẩm: "${data.product_name || '[Tên sản phẩm]'}".
 **Target Audience:** ${data.target_audience || '[Khách hàng]'}.
+
+${data.viral_element ? `**Viral Constraint:** Bắt buộc sử dụng yếu tố viral sau trong 3 giây đầu hoặc làm nền chủ đạo: "${data.viral_element}"` : ''}
 
 **Yêu cầu cấu trúc (Table Format):**
 Hãy tạo một bảng gồm 4 cột:
@@ -186,6 +282,8 @@ Hãy viết 3 lựa chọn caption khác nhau:
 2. **Option 2 (Storytelling - Engage):** Kể một câu chuyện nhỏ hoặc đặt câu hỏi dựa trên chi tiết trong ảnh để tăng tương tác.
 3. **Option 3 (Inspirational/Promotional):** Chia sẻ giá trị hoặc bán hàng khéo léo.
 
+**Bonus:** Hãy viết một đoạn **Alt Text** chuẩn SEO mô tả bức ảnh này cho công cụ tìm kiếm.
+
 **Lưu ý:** 
 - Sử dụng emoji phù hợp với cảm xúc.
 - Tạo một block 15 Hashtag tối ưu Reach ở cuối.
@@ -196,12 +294,12 @@ Hãy viết 3 lựa chọn caption khác nhau:
     category: "Creative & Media",
     iconName: "captions",
     title: "Video Subtitle Reformatter",
-    desc: "Tạo phụ đề video ngắn (TikTok/Reels) từ văn bản thô.",
+    desc: "Tạo phụ đề video ngắn (TikTok/Reels) từ văn bản thô, hỗ trợ phân tích hình ảnh frame video.",
     tags: ["Video Editing", "Reels/TikTok", "Retention"],
-    tactic: "Chiến thuật **Chunking & Highlighting**. Để giữ chân người xem video ngắn, phụ đề cần ngắt nhịp nhanh (3-5 từ/dòng) và nhấn mạnh từ khóa. Prompt này biến văn bản thô thành kịch bản sub đã tối ưu cho Editor.",
+    tactic: "Chiến thuật **Chunking & Highlighting**. Để giữ chân người xem video ngắn, phụ đề cần ngắt nhịp nhanh (3-5 từ/dòng) và nhấn mạnh từ khóa. Prompt này sử dụng thêm **Visual Analysis** để đề xuất phong cách sub phù hợp với màu sắc video.",
     inputs: [
       { id: "raw_text", label: "Nội dung lời thoại (Transcript)", placeholder: "Xin chào các bạn hôm nay mình sẽ hướng dẫn...", type: "textarea" },
-      { id: "visual_context", label: "Bối cảnh Video (Optional)", placeholder: "Nhân vật đang ngồi trước máy tính, nói nhanh...", type: "text" },
+      { id: "video_frame", label: "Ảnh chụp màn hình video (Context)", placeholder: "Upload một frame tiêu biểu để AI chọn font/màu sub...", type: "image" },
       { id: "style", label: "Phong cách hiển thị", placeholder: "Alex Hormozi style (Nhanh, in đậm keyword)", type: "text" }
     ],
     generate: (data) => `
@@ -211,7 +309,7 @@ Hãy viết 3 lựa chọn caption khác nhau:
 **Input Text:**
 "${data.raw_text || '[Transcript]'}"
 
-${data.visual_context ? `**Visual Context:** ${data.visual_context} (Hãy chèn emoji phù hợp với hành động này)` : ''}
+${data.video_frame ? `**Visual Context from Image:** (Đã đính kèm ảnh frame). Hãy nhìn phong cách video (Gaming, Vlog, Edu) để chọn style sub phù hợp.` : ''}
 
 **Phong cách:** ${data.style || 'Nhanh, gãy gọn'}.
 
@@ -219,6 +317,7 @@ ${data.visual_context ? `**Visual Context:** ${data.visual_context} (Hãy chèn 
 1. **Ngắt dòng (Line Break):** Mỗi dòng sub không quá 5 từ. Ngắt đúng nhịp nói (Natural pause).
 2. **Highlight:** Đặt các từ khóa quan trọng (Keywords) trong dấu **đậm** để Editor biết cần đổi màu hoặc làm to lên.
 3. **Emoji:** Chèn emoji minh họa ở cuối các câu quan trọng hoặc thể hiện cảm xúc.
+4. **Visual Suggestion (Nếu có ảnh):** Đề xuất Font chữ và Màu sắc text phù hợp với background của ảnh frame đã upload (để không bị chìm).
 
 **Output Example:**
 Xin chào **các bạn** 👋
@@ -255,7 +354,9 @@ ${data.current_thumb ? `
 1. **First Impression:** Thumbnail này có gây chú ý trong 0.5s đầu tiên không? Điểm nhìn (Focal point) đang ở đâu?
 2. **Text Readability:** Văn bản trên hình có dễ đọc trên mobile không? Có quá nhiều chữ không?
 3. **Color & Contrast:** Độ tương phản có đủ tốt để nổi bật trên nền trắng/đen của YouTube không?
-4. **Improvement Plan:** Đề xuất 3 thay đổi cụ thể để tăng CTR ngay lập tức.
+4. **Emotional Impact:** Biểu cảm khuôn mặt (nếu có) có đủ kích thích sự tò mò/sợ hãi/vui vẻ không?
+5. **Competition Check:** Nếu đặt cạnh các thumbnail khác trên nền trắng/đen của YouTube, nó có bị chìm không?
+6. **Improvement Plan:** Đề xuất 3 thay đổi cụ thể để tăng CTR ngay lập tức.
 ` : `
 **Yêu cầu Đề xuất Ý tưởng (Ideation):**
 Hãy đưa ra 3 concept thumbnail khác nhau. Với mỗi ý tưởng, mô tả chi tiết:
@@ -333,6 +434,86 @@ Hãy cung cấp trọn bộ cấu trúc dự án bao gồm nội dung các file 
 5. **main.py (hoặc file chính):** Code Python mẫu áp dụng các best practices (OOP, Error Handling, Logging).
 
 **Constraint:** Code phải xử lý được các lỗi thường gặp (như mất mạng, element not found) và có cơ chế thử lại (Retry mechanism).
+`
+  },
+  {
+    id: "tech_code_translate",
+    category: "Coder & Tech",
+    iconName: "shuffle",
+    title: "Code Translator (Đa Ngôn Ngữ)",
+    desc: "Chuyển đổi code từ ngôn ngữ này sang ngôn ngữ khác (VD: Python -> JS) chuẩn syntax.",
+    tags: ["Translation", "Refactoring", "Polyglot"],
+    tactic: "Sử dụng **Idiomatic Translation**. AI không chỉ dịch từng dòng code (như Google Translate) mà sẽ viết lại code theo 'văn phong' chuẩn của ngôn ngữ đích (Idioms), đảm bảo hiệu năng và dễ đọc.",
+    inputs: [
+      { id: "source_lang", label: "Ngôn ngữ gốc", placeholder: "Python", type: "text" },
+      { id: "target_lang", label: "Ngôn ngữ đích", placeholder: "Golang / TypeScript", type: "text" },
+      { id: "source_code", label: "Đoạn code cần dịch", placeholder: "def my_func(): ...", type: "textarea" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là chuyên gia lập trình đa ngôn ngữ (Polyglot Programmer).
+**Task:** Chuyển đổi đoạn code từ ${data.source_lang || 'Ngôn ngữ gốc'} sang ${data.target_lang || 'Ngôn ngữ đích'}.
+
+**Source Code:**
+\`\`\`
+${data.source_code || '[Code]'}
+\`\`\`
+
+**Yêu cầu:**
+1. **Tính chính xác:** Code mới phải chạy được và giữ nguyên logic nghiệp vụ.
+2. **Idiomatic:** Sử dụng các best practices và thư viện chuẩn của ngôn ngữ đích (Ví dụ: Python dùng snake_case, JS dùng camelCase).
+3. **Giải thích:** Nêu rõ những thay đổi quan trọng hoặc lưu ý khi chuyển đổi (ví dụ: cách xử lý concurrency khác nhau).
+`
+  },
+  {
+    id: "tech_security_audit",
+    category: "Coder & Tech",
+    iconName: "lock",
+    title: "Security Code Auditor",
+    desc: "Rà soát lỗ hổng bảo mật (SQL Injection, XSS...) trong code.",
+    tags: ["Security", "OWASP", "Cybersecurity"],
+    tactic: "Đóng vai **Cyber Security Expert**. Prompt này tập trung vào việc tìm kiếm các lỗ hổng phổ biến (OWASP Top 10) và yêu cầu AI cung cấp bản vá lỗi ngay lập tức.",
+    inputs: [
+      { id: "lang", label: "Ngôn ngữ lập trình", placeholder: "PHP / Node.js / Python", type: "text" },
+      { id: "suspicious_code", label: "Đoạn code cần kiểm tra", placeholder: "query = 'SELECT * FROM users WHERE name = ' + user_input", type: "textarea" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là chuyên gia bảo mật mạng (Cyber Security Specialist).
+**Task:** Audit đoạn code ${data.lang || ''} dưới đây để tìm lỗ hổng bảo mật.
+
+**Code Snippet:**
+\`\`\`
+${data.suspicious_code || '[Code]'}
+\`\`\`
+
+**Quy trình Audit:**
+1. **Identify:** Chỉ ra lỗ hổng bảo mật cụ thể (Ví dụ: SQL Injection, XSS, Hardcoded Credentials).
+2. **Severity:** Đánh giá mức độ nghiêm trọng (Critical/High/Medium).
+3. **Exploit:** Giải thích ngắn gọn cách hacker có thể khai thác lỗ hổng này.
+4. **Fix:** Viết lại đoạn code đã được vá lỗi (Secure Code) theo chuẩn an toàn.
+`
+  },
+  {
+    id: "tech_mermaid_diagram",
+    category: "Coder & Tech",
+    iconName: "layers",
+    title: "Hệ Thống Hóa bằng Mermaid.js",
+    desc: "Tạo sơ đồ luồng (Flowchart), Sequence Diagram từ mô tả văn bản.",
+    tags: ["Documentation", "Architecture", "Diagram"],
+    tactic: "Sử dụng **Visualization Prompting**. Thay vì hì hục vẽ Visio, bạn mô tả quy trình bằng lời, AI sẽ sinh ra code Mermaid.js để bạn dán vào Notion/GitHub/Obsidian là có ngay biểu đồ đẹp.",
+    inputs: [
+      { id: "diagram_type", label: "Loại biểu đồ", placeholder: "Flowchart / Sequence Diagram / ERD", type: "text" },
+      { id: "process_desc", label: "Mô tả quy trình/hệ thống", placeholder: "Người dùng đăng nhập -> Check DB -> Nếu sai pass thì báo lỗi -> Nếu đúng thì cấp Token...", type: "textarea" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là System Architect và chuyên gia về tài liệu kỹ thuật.
+**Task:** Chuyển đổi mô tả quy trình sau thành code **Mermaid.js** để hiển thị biểu đồ.
+
+**Loại biểu đồ:** ${data.diagram_type || 'Flowchart'}
+**Mô tả quy trình:**
+${data.process_desc || '[Mô tả]'}
+
+**Yêu cầu Output:**
+Chỉ trả về khối code Mermaid (bắt đầu bằng \`\`\`mermaid) hợp lệ. Đảm bảo logic luồng đi đúng hướng và có các chú thích (Label) rõ ràng trên các mũi tên.
 `
   },
   {

@@ -20,14 +20,56 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const copyToClipboardFallback = (text: string) => {
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      
+      // Ensure textarea is part of DOM but hidden
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      textArea.style.top = "0";
+      document.body.appendChild(textArea);
+      
+      textArea.focus();
+      textArea.select();
+      
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (successful) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } else {
+        throw new Error("execCommand copy failed");
+      }
+    } catch (fallbackErr) {
+      console.error('Copy failed:', fallbackErr);
+      alert("Không thể copy tự động. Vui lòng bôi đen và nhấn Ctrl+C.");
+    }
+  };
+
+  const performCopy = async (text: string) => {
+    if (!text) return;
+    
+    // Check if the Clipboard API is supported and if the document has focus.
+    if (navigator.clipboard && document.hasFocus()) {
+      try {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.warn('Navigator clipboard failed, using fallback.', err);
+        copyToClipboardFallback(text);
+      }
+    } else {
+      copyToClipboardFallback(text);
+    }
+  };
+
   const handleCopy = () => {
     const textToCopy = activeTab === 'prompt' ? promptText : result;
-    if (!textToCopy) return;
-    
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    performCopy(textToCopy);
   };
 
   const handleSave = () => {
@@ -211,9 +253,21 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
         {/* Decoration Line */}
         <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${activeTab === 'result' ? 'from-sky-500 via-green-500 to-emerald-500' : 'from-pink-500 via-purple-500 to-indigo-500'}`}></div>
         
-        <div className="flex-1 overflow-auto p-2 custom-scrollbar">
+        <div className="flex-1 overflow-auto p-2 custom-scrollbar relative">
             {activeTab === 'prompt' ? (
-                <div className="space-y-4">
+                <div className="space-y-4 relative group/prompt-view">
+                    {/* Floating Copy Button for Prompt Text */}
+                    <button 
+                        onClick={(e) => {
+                           e.stopPropagation();
+                           performCopy(promptText);
+                        }}
+                        className="absolute top-0 right-0 p-2 bg-slate-800/90 hover:bg-slate-700 border border-slate-700 rounded-md text-slate-400 hover:text-white transition-all opacity-0 group-hover/prompt-view:opacity-100 z-10 shadow-lg"
+                        title="Sao chép Prompt"
+                    >
+                         {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                    </button>
+
                     {attachedImages.length > 0 && (
                         <div className="flex flex-wrap gap-2 mb-4 p-2 bg-slate-900/50 rounded border border-slate-800/50">
                             {attachedImages.map((img, idx) => (
@@ -229,7 +283,7 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
                             </div>
                         </div>
                     )}
-                    <div className="font-mono text-sm text-slate-300 whitespace-pre-wrap break-words">
+                    <div className="font-mono text-sm text-slate-300 whitespace-pre-wrap break-words pb-4">
                         {promptText || <span className="text-slate-600 italic">// Prompt sẽ xuất hiện ở đây...</span>}
                     </div>
                 </div>
@@ -254,7 +308,14 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
                             components={{
                                 code({node, inline, className, children, ...props}: any) {
                                     return !inline ? (
-                                        <div className="bg-slate-900 rounded-md p-3 my-2 border border-slate-800 font-mono text-xs overflow-x-auto">
+                                        <div className="bg-slate-900 rounded-md p-3 my-2 border border-slate-800 font-mono text-xs overflow-x-auto relative group/code">
+                                             <button 
+                                                onClick={() => performCopy(String(children).replace(/\n$/, ''))}
+                                                className="absolute top-2 right-2 p-1.5 bg-slate-800 text-slate-400 hover:text-white rounded opacity-0 group-hover/code:opacity-100 transition-opacity"
+                                                title="Copy Code"
+                                             >
+                                                <Copy className="w-3 h-3" />
+                                             </button>
                                             <code {...props}>{children}</code>
                                         </div>
                                     ) : (
