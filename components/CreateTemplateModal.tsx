@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Plus, Trash2, Save } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, Plus, Trash2, Save, GripVertical } from 'lucide-react';
 import { InputConfig, CustomTemplateData } from '../types';
 
 interface CreateTemplateModalProps {
@@ -14,6 +14,9 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ onClose, onSa
   const [inputs, setInputs] = useState<InputConfig[]>([]);
   const [templateString, setTemplateString] = useState('');
   
+  // Drag and Drop State
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
   // Helper for input creation
   const addInput = () => {
     const id = `input_${Date.now()}`;
@@ -22,7 +25,7 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ onClose, onSa
 
   const updateInput = (index: number, field: keyof InputConfig, value: string) => {
     const newInputs = [...inputs];
-    // specific cast because type can only be 'text' | 'textarea'
+    // specific cast because type can only be 'text' | 'textarea' | 'image'
     if (field === 'type') {
        (newInputs[index] as any)[field] = value;
     } else {
@@ -33,6 +36,31 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ onClose, onSa
 
   const removeInput = (index: number) => {
     setInputs(inputs.filter((_, i) => i !== index));
+  };
+
+  // --- Drag and Drop Handlers ---
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnter = (index: number) => {
+    if (draggedIndex === null || draggedIndex === index) return;
+    
+    // Create a copy and swap items
+    const newInputs = [...inputs];
+    const draggedItem = newInputs[draggedIndex];
+    
+    // Remove from old position
+    newInputs.splice(draggedIndex, 1);
+    // Insert at new position
+    newInputs.splice(index, 0, draggedItem);
+    
+    setInputs(newInputs);
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
   };
 
   const handleSave = () => {
@@ -110,28 +138,49 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ onClose, onSa
 
             <div className="space-y-2">
               {inputs.map((input, idx) => (
-                <div key={input.id} className="flex gap-2 items-start bg-slate-900 p-2 rounded border border-slate-800">
+                <div 
+                  key={input.id} 
+                  draggable
+                  onDragStart={() => handleDragStart(idx)}
+                  onDragEnter={() => handleDragEnter(idx)}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(e) => e.preventDefault()} // Essential to allow drop
+                  className={`flex gap-2 items-start bg-slate-900 p-2 rounded border border-slate-800 transition-all ${
+                    draggedIndex === idx ? 'opacity-40 border-dashed border-sky-500 bg-slate-800' : 'hover:border-slate-600'
+                  }`}
+                >
+                  {/* Drag Handle */}
+                  <div className="mt-2 text-slate-600 cursor-grab active:cursor-grabbing hover:text-slate-400 p-1" title="Kéo để thay đổi thứ tự">
+                    <GripVertical className="w-4 h-4" />
+                  </div>
+
                   <div className="flex-1 space-y-2">
                     <div className="flex gap-2">
                        <input 
                           value={input.label} onChange={e => updateInput(idx, 'label', e.target.value)}
-                          className="flex-1 p-1.5 bg-slate-800 border border-slate-700 rounded text-xs text-white"
+                          className="flex-1 p-1.5 bg-slate-800 border border-slate-700 rounded text-xs text-white placeholder-slate-600 focus:border-sky-500 outline-none"
                           placeholder="Label (VD: Tên khách hàng)"
                         />
                         <select 
                           value={input.type} onChange={e => updateInput(idx, 'type', e.target.value)}
-                          className="p-1.5 bg-slate-800 border border-slate-700 rounded text-xs text-slate-300"
+                          className="p-1.5 bg-slate-800 border border-slate-700 rounded text-xs text-slate-300 focus:border-sky-500 outline-none"
                         >
                           <option value="text">Short Text</option>
                           <option value="textarea">Long Text</option>
+                          <option value="image">Image Upload</option>
                         </select>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-slate-500 font-mono bg-slate-800 px-1 rounded">ID: {input.id}</span>
-                        <span className="text-[10px] text-slate-500">Dùng {`{{${input.id}}}`} trong prompt</span>
+                        <span className="text-[10px] text-slate-500 font-mono bg-slate-800 px-1 rounded border border-slate-700 select-all">ID: {input.id}</span>
+                        {input.type !== 'image' && (
+                          <span className="text-[10px] text-slate-500">Dùng <code className="text-sky-400 select-all">{`{{${input.id}}}`}</code> trong prompt</span>
+                        )}
+                        {input.type === 'image' && (
+                          <span className="text-[10px] text-orange-400 italic">Image input: Không dùng trong text prompt, sẽ tự động đính kèm.</span>
+                        )}
                     </div>
                   </div>
-                  <button onClick={() => removeInput(idx)} className="text-slate-500 hover:text-red-400 p-1">
+                  <button onClick={() => removeInput(idx)} className="text-slate-500 hover:text-red-400 p-1 mt-1" title="Xóa input này">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -155,8 +204,8 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ onClose, onSa
         </div>
 
         <div className="p-4 border-t border-slate-800 bg-slate-900 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-300 hover:text-white">Hủy</button>
-          <button onClick={handleSave} className="px-4 py-2 text-sm bg-sky-600 hover:bg-sky-500 text-white rounded font-bold flex items-center">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-300 hover:text-white transition-colors">Hủy</button>
+          <button onClick={handleSave} className="px-4 py-2 text-sm bg-sky-600 hover:bg-sky-500 text-white rounded font-bold flex items-center shadow-lg shadow-sky-900/20 transition-all">
             <Save className="w-4 h-4 mr-2" /> Lưu Template
           </button>
         </div>

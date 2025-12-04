@@ -37,6 +37,7 @@ const App: React.FC = () => {
         let text = data.templateString;
         // Simple interpolation {{id}}
         data.inputs.forEach(input => {
+          if (input.type === 'image') return; // Do not interpolate image base64 into text
           const val = formData[input.id] || `[${input.label}]`;
           // Replace all occurrences
           text = text.split(`{{${input.id}}}`).join(val);
@@ -52,13 +53,6 @@ const App: React.FC = () => {
   // Selected Template
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(() => {
     const savedId = localStorage.getItem(STORAGE_KEY_TEMPLATE);
-    // Note: This might return undefined if savedId refers to a custom template not yet loaded, 
-    // but since we initialize customTemplates synchronously from LS, it should be fine.
-    // However, if we moved customTemplates inside useEffect, this initial state would need adjustment.
-    // Since we lazy init state, we need to access localStorage for custom templates here too strictly speaking,
-    // but React batching usually handles this if we are careful. 
-    // To be safe, we reconstruct the full list inside the initializer or use useEffect.
-    // Let's rely on finding it in the combined list later or resetting.
     return null; 
   });
 
@@ -90,18 +84,30 @@ const App: React.FC = () => {
   });
 
   const [generatedPrompt, setGeneratedPrompt] = useState<string>("// Điền thông tin bên trái để tạo Prompt...");
+  const [attachedImages, setAttachedImages] = useState<string[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // --- EFFECTS ---
 
-  // Update generated prompt when data or template changes
+  // Update generated prompt and extract images when data or template changes
   useEffect(() => {
     if (selectedTemplate) {
         setGeneratedPrompt(selectedTemplate.generate(formData));
+        
+        // Extract images from formData based on template inputs
+        const images: string[] = [];
+        selectedTemplate.inputs.forEach(input => {
+            if (input.type === 'image' && formData[input.id]) {
+                images.push(formData[input.id]);
+            }
+        });
+        setAttachedImages(images);
+
         localStorage.setItem(STORAGE_KEY_TEMPLATE, selectedTemplate.id);
     } else {
         localStorage.removeItem(STORAGE_KEY_TEMPLATE);
+        setAttachedImages([]);
     }
   }, [selectedTemplate, formData]);
 
@@ -152,10 +158,6 @@ const App: React.FC = () => {
     if (template) {
       setSelectedTemplate(template);
       setFormData(prompt.formData);
-      // prompt.content is stored, but generating it fresh ensures it matches current template logic if changed
-      // but if we want exact history, we could use prompt.content. 
-      // Current architecture regenerates from generate() in useEffect. 
-      // So setting formData is enough.
     } else {
         alert("Template gốc của prompt này đã bị xóa hoặc không tồn tại.");
     }
@@ -170,13 +172,6 @@ const App: React.FC = () => {
 
   const handleSaveCustomTemplate = (newTemplateData: CustomTemplateData) => {
     setCustomTemplatesData(prev => [...prev, newTemplateData]);
-    // Optionally select it immediately
-    setTimeout(() => {
-        const newT = allTemplates.find(t => t.id === newTemplateData.id); // Wait for memo to update? Not reliable.
-        // We can construct it manually to set select
-        // But let's just let user find it in search for now or use effect?
-        // Simple: Just update data, user sees it in sidebar.
-    }, 100);
   };
 
   // Close mobile menu on resize
@@ -204,13 +199,14 @@ const App: React.FC = () => {
         onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
 
-      {/* Mobile Overlay */}
-      {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-10 md:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
+      {/* Mobile Overlay with smooth transition */}
+      <div 
+        className={`fixed inset-0 bg-black/60 z-30 md:hidden transition-opacity duration-300 ease-in-out backdrop-blur-sm ${
+          isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setIsMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-hidden relative">
@@ -218,7 +214,7 @@ const App: React.FC = () => {
         {/* Mobile Header */}
         <div className="md:hidden p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900">
           <span className="font-bold text-slate-100">Prompt Generator</span>
-          <button onClick={() => setIsMobileMenuOpen(true)} className="text-slate-400 p-1">
+          <button onClick={() => setIsMobileMenuOpen(true)} className="text-slate-400 p-1 hover:text-white transition-colors">
             <Menu className="w-6 h-6" />
           </button>
         </div>
@@ -270,6 +266,7 @@ const App: React.FC = () => {
             promptText={generatedPrompt} 
             onSave={handleSavePrompt}
             title={selectedTemplate?.title}
+            attachedImages={attachedImages}
           />
 
         </div>

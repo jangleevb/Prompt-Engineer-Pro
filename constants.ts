@@ -12,6 +12,7 @@ export const TEMPLATES: Template[] = [
     tactic: "Sử dụng kỹ thuật **Persona Prompting** (đóng vai CFO khắt khe) kết hợp với **Analytical Prompting**. Nó buộc AI không chỉ đọc số liệu mà còn phải tìm ra 'Insights' (góc nhìn) ẩn giấu và đưa ra lời khuyên hành động (Actionable Advice) thay vì chỉ báo cáo chung chung.",
     inputs: [
       { id: "data_desc", label: "Mô tả dữ liệu bạn có", placeholder: "File CSV gồm các cột: Source, Cost, Revenue, Clicks...", type: "textarea" },
+      { id: "user_behavior_data", label: "Dữ liệu hành vi người dùng (nếu có)", placeholder: "Conversion Rate, Time on Site, Bounce Rate...", type: "textarea" },
       { id: "goal", label: "Mục tiêu cụ thể", placeholder: "Tìm ra kênh đang lỗ để cắt giảm, hoặc tìm kênh để scale gấp đôi.", type: "text" }
     ],
     generate: (data) => `
@@ -20,12 +21,14 @@ export const TEMPLATES: Template[] = [
 
 **Input Data:**
 ${data.data_desc || '[Dữ liệu đầu vào]'}
+${data.user_behavior_data ? `\n**User Behavior Data:**\n${data.user_behavior_data}` : ''}
 
 **Yêu cầu phân tích:**
 1. **Phân tích ROI thực tế:** Tính toán kỹ lưỡng Lợi nhuận ròng (Net Profit) sau khi trừ đi mọi chi phí ẩn.
 2. **Quy luật 80/20:** Chỉ ra 20% nguồn traffic nào đang mang lại 80% lợi nhuận.
 3. **Cảnh báo rủi ro:** Kênh nào đang có dấu hiệu bão hòa (Saturation) hoặc lỗ vốn (Negative ROI)?
-4. **Chiến thuật hành động:** ${data.goal || '[Mục tiêu]'}
+${data.user_behavior_data ? `4. **Phân tích User Engagement:** Đánh giá các chỉ số hành vi (Conversion Rate, Time on Site) để xác định chất lượng traffic và điểm gãy trong phễu bán hàng.` : ''}
+${data.user_behavior_data ? '5' : '4'}. **Chiến thuật hành động:** ${data.goal || '[Mục tiêu]'}
 
 **Output Format:** Trình bày dưới dạng báo cáo chuyên nghiệp, ngắn gọn. Vẽ biểu đồ ASCII nếu cần thiết để minh họa xu hướng.
 `
@@ -111,6 +114,171 @@ Hãy tạo một bảng gồm 4 cột:
 4. **The Conclusion:** Tóm tắt bài học và Call-to-Action (Đăng ký kênh) một cách tự nhiên.
 
 **Output:** Viết kịch bản chi tiết, bao gồm cả gợi ý về hình ảnh (B-Roll) và cảm xúc giọng đọc (Tone of voice).
+`
+  },
+
+  // --- CREATIVE & MEDIA ---
+  {
+    id: "media_content_audit",
+    category: "Content & SEO",
+    iconName: "shield",
+    title: "Content Auditor (Text & Image)",
+    desc: "Phân tích nội dung đa phương tiện (ảnh/bài viết) để tối ưu hiệu quả Marketing.",
+    tags: ["Multimodal Analysis", "Content Audit", "CRO"],
+    tactic: "Sử dụng sức mạnh **Multimodal** của Gemini. Template này cho phép bạn upload hình ảnh (Landing page, Banner, Social Post) hoặc nhập Text. AI sẽ đóng vai Senior Editor để 'khám bệnh' nội dung: Từ bố cục thị giác, thông điệp (Copywriting) đến sự phù hợp với đối tượng mục tiêu.",
+    inputs: [
+      { id: "audit_image", label: "Upload Ảnh (Banner/Post/Web)", placeholder: "Tải ảnh lên...", type: "image" },
+      { id: "audit_text", label: "Nội dung Text (hoặc Context)", placeholder: "Paste bài viết hoặc mô tả mục tiêu của bức ảnh...", type: "textarea" },
+      { id: "target_audience", label: "Khách hàng mục tiêu", placeholder: "Gen Z, Nhân viên văn phòng...", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Senior Content Marketing Manager & UX Auditor.
+**Task:** Phân tích và đánh giá nội dung được cung cấp (Hình ảnh hoặc Văn bản) để tối ưu hóa tỷ lệ chuyển đổi (CRO).
+
+**Context:**
+- **Khách hàng mục tiêu:** ${data.target_audience || 'Đại chúng'}
+${data.audit_text ? `- **Nội dung bổ sung/Context:** ${data.audit_text}` : ''}
+
+**Yêu cầu Audit (Phân tích sâu):**
+
+1. **Visual Hierarchy (Nếu có ảnh):**
+   - Điểm nhìn đầu tiên (Focal point) nằm ở đâu? Có đúng vào sản phẩm/thông điệp chính không?
+   - Màu sắc và font chữ có tạo cảm giác tin cậy/hấp dẫn không?
+
+2. **Copywriting & Message:**
+   - Thông điệp có rõ ràng (Clear) và súc tích (Concise) không?
+   - "Hook" có đủ mạnh để dừng ngón tay người dùng không?
+
+3. **Psychological Triggers:**
+   - Nội dung này đang đánh vào cảm xúc nào? (Sợ hãi, Tham lam, Tò mò...)
+   - Call-to-Action (CTA) có đủ thôi thúc không?
+
+**Kết luận:** Đưa ra 3 điểm cần sửa ngay lập tức (Quick Wins) để tăng hiệu quả của nội dung này.
+`
+  },
+  {
+    id: "media_img_caption",
+    category: "Creative & Media",
+    iconName: "image",
+    title: "AI Image Caption Generator",
+    desc: "Tạo caption thu hút, chuẩn SEO cho ảnh Instagram, Facebook, LinkedIn.",
+    tags: ["Social Media", "Copywriting", "Viral"],
+    tactic: "Sử dụng **Platform-Specific Context**. Mỗi nền tảng có văn phong khác nhau (Instagram thiên về visual/emoji, LinkedIn thiên về giá trị/câu chuyện). Prompt này yêu cầu AI điều chỉnh giọng văn phù hợp và tự động gợi ý Hashtag.",
+    inputs: [
+      { id: "img_desc", label: "Mô tả bức ảnh", placeholder: "Ảnh tôi đang ngồi làm việc tại quán cafe, trời mưa, tâm trạng chill...", type: "textarea" },
+      { id: "platform", label: "Nền tảng đăng", placeholder: "Instagram / LinkedIn / Facebook", type: "text" },
+      { id: "tone", label: "Cảm xúc (Mood)", placeholder: "Hài hước, Deep, Truyền cảm hứng...", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Social Media Manager chuyên nghiệp, người nắm giữ nghệ thuật viết caption viral.
+**Task:** Viết caption cho bức ảnh đăng trên ${data.platform || 'Mạng xã hội'}.
+
+**Ngữ cảnh bức ảnh (Context):**
+"${data.img_desc || '[Mô tả ảnh]'}"
+
+**Tone & Mood:** ${data.tone || 'Tự nhiên'}.
+
+**Yêu cầu Output:**
+Hãy viết 3 lựa chọn caption khác nhau:
+1. **Option 1 (Ngắn gọn - Punchy):** Dành cho người lướt nhanh, 1 câu duy nhất cực chất.
+2. **Option 2 (Storytelling - Engage):** Kể một câu chuyện nhỏ hoặc đặt câu hỏi để tăng tương tác (Comments).
+3. **Option 3 (Inspirational - Value):** Chia sẻ một bài học hoặc quote hay liên quan.
+
+**Lưu ý:** Thêm các emoji phù hợp và một bộ 15 Hashtag tối ưu khả năng tiếp cận (Reach) ở cuối.
+`
+  },
+  {
+    id: "media_video_sub",
+    category: "Creative & Media",
+    iconName: "captions",
+    title: "Video Subtitle Reformatter",
+    desc: "Tối ưu văn bản thành dạng phụ đề (Subtitles) cho video ngắn.",
+    tags: ["Video Editing", "Reels/TikTok", "Retention"],
+    tactic: "Chiến thuật **Chunking & Highlighting**. Để giữ chân người xem video ngắn, phụ đề cần ngắt nhịp nhanh (3-5 từ/dòng) và nhấn mạnh từ khóa. Prompt này biến văn bản thô thành kịch bản sub đã tối ưu cho Editor.",
+    inputs: [
+      { id: "raw_text", label: "Nội dung lời thoại (Transcript)", placeholder: "Xin chào các bạn hôm nay mình sẽ hướng dẫn...", type: "textarea" },
+      { id: "style", label: "Phong cách hiển thị", placeholder: "Alex Hormozi style (Nhanh, in đậm keyword)", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Video Editor chuyên làm sub cho các kênh TikTok/Reels triệu view.
+**Task:** Format lại đoạn văn bản sau thành dạng phụ đề (Subtitles) tối ưu cho video ngắn.
+**Phong cách:** ${data.style || 'Nhanh, gãy gọn'}.
+
+**Input Text:**
+"${data.raw_text || '[Transcript]'}"
+
+**Quy tắc Format (Bắt buộc):**
+1. **Ngắt dòng (Line Break):** Mỗi dòng sub không quá 5 từ. Ngắt đúng nhịp nói (Natural pause).
+2. **Highlight:** Đặt các từ khóa quan trọng (Keywords) trong dấu **đậm** để Editor biết cần đổi màu hoặc làm to lên.
+3. **Emoji:** Chèn emoji minh họa ở cuối các câu quan trọng.
+
+**Output Example:**
+Xin chào **các bạn** 👋
+Hôm nay mình sẽ **hướng dẫn**
+Cách kiếm **1000$** đầu tiên 💰
+`
+  },
+  {
+    id: "media_thumbnail",
+    category: "Creative & Media",
+    iconName: "palette",
+    title: "YouTube Thumbnail Consultant",
+    desc: "Đề xuất ý tưởng Thumbnail tối ưu CTR (Tỷ lệ nhấp).",
+    tags: ["YouTube Strategy", "Design", "Psychology"],
+    tactic: "Sử dụng **Visual Descriptive Prompting**. Thay vì ý tưởng trừu tượng, AI sẽ mô tả chi tiết các yếu tố thị giác: Tiền cảnh (Nhân vật làm gì?), Hậu cảnh (Màu gì?), Text (Viết gì ngắn gọn?) dựa trên tâm lý học hành vi.",
+    inputs: [
+      { id: "video_title", label: "Tiêu đề Video", placeholder: "Cách kiếm 1000$ đầu tiên trên Upwork", type: "text" },
+      { id: "target_audience", label: "Đối tượng khán giả", placeholder: "Sinh viên, Freelancer mới bắt đầu", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là YouTube Strategist và Graphic Designer hàng đầu.
+**Task:** Đề xuất 3 ý tưởng Thumbnail có CTR (Click-Through Rate) cao nhất cho video:
+**Title:** "${data.video_title || '[Tiêu đề]'}"
+**Audience:** ${data.target_audience || '[Khán giả]'}
+
+**Yêu cầu Output:**
+Với mỗi ý tưởng, hãy mô tả chi tiết 4 lớp (Layers):
+1. **Background:** Màu sắc chủ đạo (Nên dùng màu tương phản như Vàng/Đỏ/Xanh neon), bối cảnh.
+2. **Foreground (Nhân vật):** Biểu cảm khuôn mặt (Shock, Vui sướng, Nghi ngờ...), hướng mắt nhìn, hành động tay.
+3. **Text Overlay:** Văn bản trên hình (ngắn dưới 5 từ, gây tò mò).
+4. **Psychology:** Tại sao thiết kế này lại khiến người xem muốn click?
+
+Hãy đưa ra 3 concept: (1) Concept "Kết quả/Bằng chứng", (2) Concept "Cảnh báo/Sai lầm", (3) Concept "So sánh/Đối chiếu".
+`
+  },
+  {
+    id: "media_infographic",
+    category: "Creative & Media",
+    iconName: "layout-template",
+    title: "Infographic Prompt Master",
+    desc: "Tạo prompt để vẽ Infographic chuyên nghiệp (Timeline, Process, Data...).",
+    tags: ["Visual Design", "Midjourney/Dall-E", "Data Visualization"],
+    tactic: "Sử dụng **Structural Visual Prompting**. Để AI vẽ được Infographic chứa chữ và số liệu chính xác là rất khó. Chiến thuật ở đây là yêu cầu AI mô tả bố cục (Layout), bảng màu (Palette) và các icon đại diện (Iconography) để tạo ra một hình ảnh nền hoàn hảo, sau đó bạn có thể chèn text thủ công.",
+    inputs: [
+      { id: "topic", label: "Chủ đề Infographic", placeholder: "Quy trình 5 bước bán hàng online", type: "text" },
+      { id: "points", label: "Các điểm dữ liệu chính (Data Points)", placeholder: "Bước 1: Tìm hàng, Bước 2: Marketing, Bước 3: Sale...", type: "textarea" },
+      { id: "style", label: "Phong cách thiết kế", placeholder: "Flat Design, 3D Isometric, Hand-drawn, Corporate Blue...", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là AI Art Director chuyên về Data Visualization.
+**Task:** Viết một Image Generation Prompt chi tiết để tạo nền cho một Infographic về chủ đề: "${data.topic || '[Chủ đề]'}"
+
+**Nội dung chính cần thể hiện:**
+${data.points || '[Dữ liệu]'}
+
+**Phong cách:** ${data.style || 'Modern Flat Design'}.
+
+**Yêu cầu Output:**
+Hãy viết 3 Prompt khác nhau (dùng cho Midjourney v6 hoặc Gemini Image Gen):
+
+1. **Layout Prompt (Dạng Timeline/Process):** Tập trung vào dòng chảy từ trái sang phải hoặc từ trên xuống dưới.
+   - *Cấu trúc:* [Subject] infographic, flow chart layout, 5 distinct steps, connected by arrows...
+2. **Layout Prompt (Dạng Grid/Comparison):** Tập trung vào so sánh hoặc liệt kê.
+   - *Cấu trúc:* [Subject] infographic, grid layout, symmetrical balance, clean icons...
+3. **Stylized Prompt (Dạng Isometric 3D):** Tập trung vào sự ấn tượng thị giác.
+   - *Cấu trúc:* 3D isometric infographic map, floating elements, high detail...
+
+*Lưu ý cho AI:* Thêm các tham số kỹ thuật như "--ar 2:3" (cho khổ dọc) hoặc "--v 6.0" vào cuối prompt.
 `
   },
 
@@ -357,7 +525,7 @@ Hãy viết nội dung chi tiết, hữu ích, không viết chung chung.
     inputs: [
       { id: "recipient_role", label: "Vai trò người nhận", placeholder: "CEO công ty Marketing, HR Manager...", type: "text" },
       { id: "my_service", label: "Sản phẩm/Dịch vụ của bạn", placeholder: "Phần mềm quản lý nhân sự bằng AI", type: "text" },
-      { id: "value_prop", label: "Giá trị cốt lõi (USP)", placeholder: "Giúp tiết kiệm 50% thời gian chấm công", type: "text" }
+      { id: "value_prop", label: "Giá trị cốt lõi (USP)", placeholder: "Giảm 50% thời gian chấm công", type: "text" }
     ],
     generate: (data) => `
 **Role:** Bạn là chuyên gia phát triển kinh doanh (Business Development) chuyên về Cold Outreach.
@@ -379,9 +547,9 @@ Hãy viết nội dung chi tiết, hữu ích, không viết chung chung.
     category: "Business & Sales",
     iconName: "search",
     title: "SWOT Analysis Pro",
-    desc: "Phân tích Điểm mạnh, Yếu, Cơ hội, Thách thức của một ý tưởng/Sản phẩm.",
+    desc: "Phân tích SWOT kèm theo Prompt tạo ảnh Infographic.",
     tags: ["Business Strategy", "Market Research", "Planning"],
-    tactic: "Sử dụng **Strategic Thinking**. AI đóng vai trò nhà tư vấn chiến lược, nhìn vấn đề từ 4 góc độ (Nội tại tích cực, Nội tại tiêu cực, Bên ngoài tích cực, Bên ngoài tiêu cực) để đưa ra cái nhìn toàn cảnh.",
+    tactic: "Sử dụng **Strategic Thinking** kết hợp **Multi-Modal Prompting**. Ngoài việc phân tích văn bản sâu sắc, template này còn tự động tạo ra một 'Image Prompt' để bạn nạp vào Gemini/Midjourney và vẽ ngay biểu đồ SWOT cực đẹp.",
     inputs: [
       { id: "subject", label: "Đối tượng phân tích", placeholder: "Mở quán cafe thú cưng tại Hà Nội", type: "text" },
       { id: "competitors", label: "Đối thủ chính (nếu biết)", placeholder: "Các quán cafe truyền thống, trà chanh vỉa hè", type: "text" }
@@ -392,13 +560,20 @@ Hãy viết nội dung chi tiết, hữu ích, không viết chung chung.
 
 **Bối cảnh:** Đối thủ cạnh tranh bao gồm: ${data.competitors || 'Chưa rõ'}.
 
-**Yêu cầu Output:**
+**Phần 1: Phân Tích Chuyên Sâu**
 1. **Strengths (Điểm mạnh):** Lợi thế nội tại của dự án này là gì?
 2. **Weaknesses (Điểm yếu):** Những hạn chế về vốn, nhân sự, kinh nghiệm?
 3. **Opportunities (Cơ hội):** Xu hướng thị trường nào đang ủng hộ dự án này?
 4. **Threats (Thách thức):** Rủi ro pháp lý, đối thủ, thay đổi hành vi người dùng?
 
-**Kết luận:** Đưa ra 3 lời khuyên chiến lược (Strategic Recommendations) dựa trên bảng SWOT trên.
+**Phần 2: Lời Khuyên Chiến Lược**
+Đưa ra 3 chiến lược hành động cụ thể dựa trên bảng SWOT trên.
+
+---
+**BONUS: Image Generation Prompt (Dùng để tạo Infographic)**
+*Copy đoạn dưới đây vào Gemini (chế độ vẽ ảnh) hoặc Midjourney để tạo biểu đồ:*
+
+> **"A professional SWOT analysis infographic for '${data.subject || 'Business Project'}'. The design is divided into 4 distinct quadrants. Quadrant 1 (Strengths): Green theme, icon of a flexed arm or shield. Quadrant 2 (Weaknesses): Orange theme, icon of a broken link. Quadrant 3 (Opportunities): Blue theme, icon of a lightbulb or upward arrow. Quadrant 4 (Threats): Red theme, icon of a warning sign or storm. Clean modern vector flat design, white background, high resolution business data visualization style, helvetica font --ar 4:3"**
 `
   },
 

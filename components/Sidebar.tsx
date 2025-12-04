@@ -21,7 +21,11 @@ import {
   Layers,
   Youtube,
   PlusCircle,
-  PencilRuler
+  PencilRuler,
+  Image,
+  Palette,
+  Captions,
+  LayoutTemplate
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -51,7 +55,11 @@ const IconMap: Record<string, React.FC<{ className?: string }>> = {
   "file-json": FileJson,
   "layers": Layers,
   "youtube": Youtube,
-  "custom": PencilRuler
+  "custom": PencilRuler,
+  "image": Image,
+  "palette": Palette,
+  "captions": Captions,
+  "layout-template": LayoutTemplate
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -94,8 +102,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside 
       className={`
-        fixed md:relative top-0 left-0 h-full w-64 bg-slate-900 border-r border-slate-800 flex flex-col z-20 transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        fixed md:relative top-0 left-0 h-full w-64 bg-slate-900 border-r border-slate-800 flex flex-col z-40 transition-all duration-300 ease-in-out shadow-2xl md:shadow-none
+        ${isOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 md:translate-x-0 md:opacity-100'}
       `}
     >
       <div className="p-6 border-b border-slate-800">
@@ -107,7 +115,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </h1>
                 <p className="text-xs text-slate-500 mt-1">Cấu hình cho Gemini Studio</p>
             </div>
-            <button className="md:hidden text-slate-400" onClick={onCloseMobile}>&times;</button>
+            <button className="md:hidden text-slate-400 hover:text-white p-1" onClick={onCloseMobile}>&times;</button>
         </div>
         
         {/* Search Bar */}

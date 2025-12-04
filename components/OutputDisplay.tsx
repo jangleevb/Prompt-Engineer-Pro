@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Terminal, Copy, Check, ExternalLink, Save, Download, Play, Sparkles, AlertCircle } from 'lucide-react';
+import { Terminal, Copy, Check, ExternalLink, Save, Download, Play, Sparkles, AlertCircle, Key, Image as ImageIcon } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from 'react-markdown';
 
@@ -7,9 +7,10 @@ interface OutputDisplayProps {
   promptText: string;
   title?: string;
   onSave: () => void;
+  attachedImages?: string[]; // Array of base64 data URLs
 }
 
-const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave }) => {
+const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave, attachedImages = [] }) => {
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
   
@@ -49,6 +50,18 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
     document.body.removeChild(element);
   };
 
+  const handleChangeApiKey = async () => {
+    if ((window as any).aistudio) {
+        try {
+            await (window as any).aistudio.openSelectKey();
+        } catch (e) {
+            console.error("Error selecting key:", e);
+        }
+    } else {
+        alert("Tính năng đổi API Key chỉ khả dụng trong môi trường AI Studio.");
+    }
+  };
+
   const handleRunGemini = async () => {
     if (!promptText.trim()) return;
 
@@ -58,9 +71,35 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
 
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        
+        let contents: any;
+
+        if (attachedImages.length > 0) {
+            // Multimodal request
+            const parts: any[] = [{ text: promptText }];
+            
+            attachedImages.forEach(dataUrl => {
+                // Format: data:image/png;base64,.....
+                const [metadata, base64] = dataUrl.split(';base64,');
+                const mimeType = metadata.split(':')[1];
+                
+                parts.push({
+                    inlineData: {
+                        mimeType: mimeType,
+                        data: base64
+                    }
+                });
+            });
+
+            contents = { parts: parts };
+        } else {
+            // Text only request
+            contents = promptText;
+        }
+
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
-          contents: promptText,
+          contents: contents,
         });
         setResult(response.text || "Không có phản hồi từ API.");
     } catch (err: any) {
@@ -110,6 +149,15 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
                Run with Gemini
              </button>
           )}
+
+          <button 
+            onClick={handleChangeApiKey}
+            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs rounded transition-colors flex items-center"
+            title="Đổi API Key"
+          >
+            <Key className="w-3 h-3 mr-1" />
+            API Key
+          </button>
 
           <button 
             onClick={handleSave}
@@ -165,8 +213,25 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
         
         <div className="flex-1 overflow-auto p-2 custom-scrollbar">
             {activeTab === 'prompt' ? (
-                <div className="font-mono text-sm text-slate-300 whitespace-pre-wrap break-words">
-                    {promptText || <span className="text-slate-600 italic">// Prompt sẽ xuất hiện ở đây...</span>}
+                <div className="space-y-4">
+                    {attachedImages.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-4 p-2 bg-slate-900/50 rounded border border-slate-800/50">
+                            {attachedImages.map((img, idx) => (
+                                <div key={idx} className="relative w-16 h-16 rounded overflow-hidden border border-slate-700 group/img">
+                                    <img src={img} alt={`Attached ${idx}`} className="w-full h-full object-cover" />
+                                    <div className="absolute bottom-0 right-0 bg-black/60 p-0.5 rounded-tl text-[8px] text-white">
+                                        IMG {idx + 1}
+                                    </div>
+                                </div>
+                            ))}
+                            <div className="flex items-center text-xs text-slate-500 italic px-2">
+                                <ImageIcon className="w-3 h-3 mr-1" /> Kèm {attachedImages.length} ảnh
+                            </div>
+                        </div>
+                    )}
+                    <div className="font-mono text-sm text-slate-300 whitespace-pre-wrap break-words">
+                        {promptText || <span className="text-slate-600 italic">// Prompt sẽ xuất hiện ở đây...</span>}
+                    </div>
                 </div>
             ) : (
                 <div className="text-sm text-slate-300 leading-relaxed markdown-content">

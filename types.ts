@@ -4,7 +4,7 @@ export interface InputConfig {
   id: string;
   label: string;
   placeholder: string;
-  type: 'text' | 'textarea';
+  type: 'text' | 'textarea' | 'image';
 }
 
 export interface Template {
