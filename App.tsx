@@ -33,7 +33,19 @@ const App: React.FC = () => {
   }, []);
 
   const handleLogin = () => {
-    // Simulate Google Login
+    // --- MOCK LOGIN IMPLEMENTATION ---
+    // In a real app, replace this with Firebase Auth:
+    // 
+    // import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+    // import { auth } from "./firebaseConfig";
+    // 
+    // const provider = new GoogleAuthProvider();
+    // signInWithPopup(auth, provider)
+    //   .then((result) => {
+    //     const user = result.user;
+    //     setUser({ name: user.displayName, email: user.email, avatar: user.photoURL });
+    //   }).catch((error) => console.error(error));
+
     const mockUser = {
       name: "Nguyễn Văn Dev",
       email: "dev.pro@gmail.com",
@@ -44,6 +56,9 @@ const App: React.FC = () => {
   };
 
   const handleLogout = () => {
+    // --- REAL FIREBASE LOGOUT ---
+    // auth.signOut().then(() => setUser(null));
+    
     setUser(null);
     localStorage.removeItem(STORAGE_KEY_USER);
   };
