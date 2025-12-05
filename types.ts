@@ -6,7 +6,7 @@ export interface InputConfig {
   id: string;
   label: string;
   placeholder: string;
-  type: 'text' | 'textarea' | 'image';
+  type: 'text' | 'textarea' | 'image' | 'file';
 }
 
 export interface Template {
@@ -41,6 +41,7 @@ export interface CustomTemplateData {
   templateString: string;
   category: string;
   tags: string[];
+  type?: string;
 }
 
 export type Category = string;

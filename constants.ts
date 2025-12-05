@@ -453,6 +453,60 @@ Hãy viết 3 Prompt khác nhau (dùng cho Midjourney v6 hoặc Gemini Image Gen
 
   // --- CODER & TECH ---
   {
+    id: "tech_code_analysis",
+    source: "system",
+    category: "Coder & Tech",
+    iconName: "scan-search",
+    title: "Phân Tích & Review Code (File/URL)",
+    desc: "Upload file code (JS, PY, Dockerfile...) hoặc nhập link để AI phân tích kiến trúc, tìm lỗi và gợi ý tối ưu.",
+    tags: ["Code Review", "Architecture", "Security", "File Upload"],
+    tactic: "Sử dụng **Contextual Analysis Strategy**. Bằng cách upload trực tiếp nội dung file code, AI có cái nhìn chính xác từng dòng (line-by-line). Prompt yêu cầu AI đóng vai 'Senior Architect' để không chỉ tìm lỗi syntax (Linting) mà còn phân tích về logic nghiệp vụ, bảo mật và khả năng mở rộng (Scalability).",
+    inputs: [
+      { id: "context", label: "Mô tả / Yêu cầu đặc biệt", placeholder: "Ví dụ: Kiểm tra lỗi memory leak, đánh giá bảo mật, giải thích logic...", type: "textarea" },
+      { id: "code_url", label: "Link Repository (Github/DockerHub - Optional)", placeholder: "https://github.com/username/repo...", type: "text" },
+      { id: "code_content", label: "File Code / Nội dung Code", placeholder: "Upload file code (.js, .py, .txt, Dockerfile...) hoặc paste code vào đây", type: "file" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Senior Software Architect và Security Researcher.
+**Task:** Phân tích sâu (Deep Dive Analysis) đoạn mã nguồn hoặc repository được cung cấp dưới đây.
+
+**Context / Yêu cầu từ user:**
+${data.context || 'Phân tích tổng quan và tìm lỗi tiềm ẩn.'}
+
+**Nguồn dữ liệu:**
+${data.code_url ? `- **Repository/URL:** ${data.code_url} (Lưu ý: Nếu không truy cập được link, hãy phân tích dựa trên kiến thức đã học hoặc yêu cầu user cung cấp code cụ thể).` : ''}
+
+**Code Content:**
+\`\`\`
+${data.code_content || '[User chưa upload file hoặc chưa paste code. Nếu có URL, hãy cố gắng phân tích dựa trên URL]'}
+\`\`\`
+
+**Yêu cầu Output (Báo cáo chi tiết):**
+
+1.  **Overview (Tổng quan):**
+    - Code này làm gì?
+    - Stack công nghệ sử dụng?
+
+2.  **Architecture & Logic (Phân tích luồng):**
+    - Giải thích luồng dữ liệu chính.
+    - Đánh giá về cấu trúc (Clean Architecture, Modularization...).
+
+3.  **Critical Issues (Lỗi & Bảo mật):**
+    - Tìm các lỗ hổng bảo mật (Security Flaws) nếu có.
+    - Tìm các vấn đề về hiệu năng (Performance Bottlenecks).
+    - Các Bad Practices đang tồn tại.
+
+4.  **Refactoring Suggestions (Gợi ý tối ưu):**
+    - Đưa ra 3 đề xuất cụ thể để cải thiện code tốt hơn, gọn hơn và nhanh hơn.
+    - (Nếu là Dockerfile) Gợi ý cách giảm kích thước image hoặc tăng bảo mật container.
+
+5.  **Tactic/Pattern Explanation:**
+    - Code này đang sử dụng (hoặc nên sử dụng) Design Pattern nào?
+
+Hãy trình bày rõ ràng, sử dụng markdown để highlight code.
+`
+  },
+  {
     id: "tech_coder_tool",
     source: "system",
     category: "Coder & Tech",

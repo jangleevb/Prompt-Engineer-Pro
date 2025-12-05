@@ -35,7 +35,8 @@ import {
   Cloud,
   HardDrive,
   Box,
-  RefreshCw
+  RefreshCw,
+  ScanSearch
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -77,7 +78,8 @@ const IconMap: Record<string, React.FC<{ className?: string }>> = {
   "shopping-bag": ShoppingBag,
   "globe": Globe,
   "shuffle": Shuffle,
-  "lock": Lock
+  "lock": Lock,
+  "scan-search": ScanSearch
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ 

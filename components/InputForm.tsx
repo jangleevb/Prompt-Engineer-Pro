@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Template, InputConfig } from '../types';
-import { ArrowLeft, Upload, X, Image as ImageIcon, Wand2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Upload, X, Image as ImageIcon, Wand2, Loader2, FileCode } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 
 interface InputFormProps {
@@ -11,9 +11,10 @@ interface InputFormProps {
 
 const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textFileInputRef = useRef<HTMLInputElement>(null);
   const [fillingId, setFillingId] = useState<string | null>(null);
 
-  const handleFileChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -25,10 +26,29 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange }) =
     }
   };
 
+  const handleTextFileChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result as string;
+        onChange(id, content);
+      };
+      reader.readAsText(file);
+    }
+  };
+
   const handleClearImage = (id: string) => {
     onChange(id, '');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+  
+  const handleClearFile = (id: string) => {
+    onChange(id, '');
+    if (textFileInputRef.current) {
+      textFileInputRef.current.value = '';
     }
   };
 
@@ -90,7 +110,7 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange }) =
               </label>
 
               {/* Magic Fill Button - Only for text/textarea */}
-              {input.type !== 'image' && (
+              {input.type !== 'image' && input.type !== 'file' && (
                   <button
                     onClick={() => handleMagicFill(input)}
                     disabled={fillingId === input.id}
@@ -145,12 +165,46 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange }) =
                     type="file" 
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => handleFileChange(input.id, e)}
+                    onChange={(e) => handleImageChange(input.id, e)}
                     ref={fileInputRef}
                   />
                 </div>
               )}
             </div>
+          ) : input.type === 'file' ? (
+             <div className="mt-1">
+                {formData[input.id] ? (
+                    <div className="w-full p-3 bg-slate-800 rounded-lg border border-slate-700 flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-sky-400">
+                                <FileCode className="w-5 h-5" />
+                                <span className="text-xs font-bold">File Content Loaded</span>
+                            </div>
+                            <button onClick={() => handleClearFile(input.id)} className="text-slate-500 hover:text-red-400">
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="max-h-32 overflow-y-auto p-2 bg-slate-950 rounded border border-slate-800 text-[10px] font-mono text-slate-400">
+                            {formData[input.id].slice(0, 500)}...
+                        </div>
+                    </div>
+                ) : (
+                    <div 
+                        onClick={() => document.getElementById(`text-file-${input.id}`)?.click()}
+                        className="w-full h-24 border border-dashed border-slate-700 rounded-lg hover:border-sky-500 hover:bg-slate-800/50 transition-all cursor-pointer flex flex-col items-center justify-center text-slate-500 group"
+                    >
+                        <FileCode className="w-6 h-6 mb-2 group-hover:text-sky-400 transition-colors" />
+                        <span className="text-xs group-hover:text-slate-300">{input.placeholder || "Upload Code File (.js, .py, .txt, Dockerfile...)"}</span>
+                        <input 
+                            id={`text-file-${input.id}`}
+                            type="file" 
+                            className="hidden"
+                            onChange={(e) => handleTextFileChange(input.id, e)}
+                            ref={textFileInputRef}
+                        />
+                    </div>
+                )}
+             </div>
           ) : (
             <input
               type="text"
