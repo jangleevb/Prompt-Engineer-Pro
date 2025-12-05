@@ -222,6 +222,42 @@ Hãy tạo một bảng gồm 4 cột:
 
   // --- CREATIVE & MEDIA ---
   {
+    id: "media_img_to_prompt",
+    source: "system",
+    category: "Creative & Media",
+    iconName: "image",
+    title: "Image to Text Prompt (Reverse Engineering)",
+    desc: "Phân tích hình ảnh và tạo ra text prompt để vẽ lại hình đó (Midjourney/DALL-E).",
+    tags: ["Reverse Engineering", "Midjourney", "Image Analysis"],
+    tactic: "Sử dụng kỹ thuật **Visual Decoding**. AI sẽ 'nhìn' bức ảnh, phân tách các yếu tố nghệ thuật (ánh sáng, bố cục, phong cách) và chuyển đổi ngược lại thành ngôn ngữ prompt chuyên ngành.",
+    inputs: [
+      { id: "ref_image", label: "Upload ảnh mẫu (Reference)", placeholder: "Tải ảnh cần lấy prompt...", type: "image" },
+      { id: "target_model", label: "Model mục tiêu", placeholder: "Midjourney v6 / DALL-E 3 / Stable Diffusion", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là chuyên gia phân tích hình ảnh và kỹ sư Prompt (Prompt Engineer).
+**Task:** Hãy nhìn vào bức ảnh tôi vừa upload và viết lại Prompt mô tả nó.
+
+**Target Model:** ${data.target_model || 'Midjourney v6'}
+
+**Yêu cầu phân tích:**
+Hãy mổ xẻ bức ảnh dựa trên các yếu tố:
+1. **Subject:** Chủ thể chính là gì?
+2. **Art Style:** Phong cách nghệ thuật (Photography, 3D Render, Oil Painting...)?
+3. **Lighting & Color:** Ánh sáng và bảng màu chủ đạo.
+4. **Camera/Angle:** Góc máy, tiêu cự (nếu là ảnh chụp).
+5. **Vibe/Mood:** Cảm xúc của bức ảnh.
+
+**Output:**
+Dựa trên phân tích trên, hãy viết **3 Prompts** (bằng tiếng Anh) để tôi có thể dùng nó vẽ lại bức ảnh này.
+- **Prompt 1 (Accurate):** Mô tả sát thực tế nhất.
+- **Prompt 2 (Creative):** Thêm thắt các tính từ nghệ thuật (Artistic modifiers).
+- **Prompt 3 (Minimalist):** Ngắn gọn, tập trung vào từ khóa chính.
+
+*Định dạng:* Hãy để các prompt trong khối code block để dễ copy.
+`
+  },
+  {
     id: "media_content_audit",
     source: "system",
     category: "Creative & Media",
@@ -772,34 +808,49 @@ Hãy viết nội dung chi tiết, hữu ích, không viết chung chung.
     source: "system",
     category: "Business & Sales",
     iconName: "search",
-    title: "SWOT Analysis Pro",
-    desc: "Phân tích SWOT kèm theo Prompt tạo ảnh Infographic.",
-    tags: ["Business Strategy", "Market Research", "Planning"],
-    tactic: "Sử dụng **Strategic Thinking** kết hợp **Multi-Modal Prompting**. Ngoài việc phân tích văn bản sâu sắc, template này còn tự động tạo ra một 'Image Prompt' để bạn nạp vào Gemini/Midjourney và vẽ ngay biểu đồ SWOT cực đẹp.",
+    title: "Strategic TOWS Matrix (Advanced SWOT)",
+    desc: "Phân tích SWOT nâng cao kết hợp ma trận TOWS để tìm ra chiến lược hành động.",
+    tags: ["Business Strategy", "Market Research", "TOWS Matrix"],
+    tactic: "Nâng cấp từ SWOT thông thường lên **TOWS Matrix**. Prompt này yêu cầu AI trả về kết quả dưới dạng **Bảng Markdown** để dễ nhìn, đồng thời quan trọng nhất là đưa ra 4 nhóm chiến lược hành động: **SO** (Phát huy điểm mạnh để nắm bắt cơ hội), **WO**, **ST** và **WT**. Đây là bước quan trọng chuyển từ 'phân tích' sang 'hành động'.",
     inputs: [
-      { id: "subject", label: "Đối tượng phân tích", placeholder: "Mở quán cafe thú cưng tại Hà Nội", type: "text" },
-      { id: "competitors", label: "Đối thủ chính (nếu biết)", placeholder: "Các quán cafe truyền thống, trà chanh vỉa hè", type: "text" }
+      { id: "subject", label: "Dự án / Doanh nghiệp", placeholder: "Mở quán cafe thú cưng tại Hà Nội", type: "text" },
+      { id: "industry", label: "Lĩnh vực / Ngành hàng", placeholder: "F&B, Dịch vụ thú cưng", type: "text" },
+      { id: "competitors", label: "Đối thủ chính", placeholder: "Các quán cafe truyền thống, trà chanh vỉa hè", type: "text" },
+      { id: "goal", label: "Mục tiêu chiến lược", placeholder: "Đạt điểm hòa vốn sau 3 tháng", type: "text" }
     ],
     generate: (data) => `
-**Role:** Bạn là Chuyên gia Tư vấn Chiến lược Kinh doanh (Strategic Consultant).
-**Task:** Thực hiện phân tích SWOT chi tiết cho dự án: "${data.subject || '[Dự án]'}".
+**Role:** Bạn là Chuyên gia Tư vấn Chiến lược Kinh doanh (Strategic Consultant) với tư duy sắc bén.
+**Task:** Thực hiện phân tích **TOWS Matrix** (SWOT nâng cao) cho dự án: "${data.subject || '[Dự án]'}".
 
-**Bối cảnh:** Đối thủ cạnh tranh bao gồm: ${data.competitors || 'Chưa rõ'}.
-
-**Phần 1: Phân Tích Chuyên Sâu**
-1. **Strengths (Điểm mạnh):** Lợi thế nội tại của dự án này là gì?
-2. **Weaknesses (Điểm yếu):** Những hạn chế về vốn, nhân sự, kinh nghiệm?
-3. **Opportunities (Cơ hội):** Xu hướng thị trường nào đang ủng hộ dự án này?
-4. **Threats (Thách thức):** Rủi ro pháp lý, đối thủ, thay đổi hành vi người dùng?
-
-**Phần 2: Lời Khuyên Chiến Lược**
-Đưa ra 3 chiến lược hành động cụ thể dựa trên bảng SWOT trên.
+**Context:**
+- **Ngành hàng:** ${data.industry || 'Chưa rõ'}
+- **Đối thủ:** ${data.competitors || 'Chưa rõ'}
+- **Mục tiêu:** ${data.goal || 'Phát triển bền vững'}
 
 ---
-**BONUS: Image Generation Prompt (Dùng để tạo Infographic)**
-*Copy đoạn dưới đây vào Gemini (chế độ vẽ ảnh) hoặc Midjourney để tạo biểu đồ:*
 
-> **"A professional SWOT analysis infographic for '${data.subject || 'Business Project'}'. The design is divided into 4 distinct quadrants. Quadrant 1 (Strengths): Green theme, icon of a flexed arm or shield. Quadrant 2 (Weaknesses): Orange theme, icon of a broken link. Quadrant 3 (Opportunities): Blue theme, icon of a lightbulb or upward arrow. Quadrant 4 (Threats): Red theme, icon of a warning sign or storm. Clean modern vector flat design, white background, high resolution business data visualization style, helvetica font --ar 4:3"**
+**PHẦN 1: EXECUTIVE SUMMARY**
+Tóm tắt ngắn gọn trong 3 dòng về vị thế hiện tại của dự án này trên thị trường.
+
+**PHẦN 2: SWOT MATRIX (Markdown Table)**
+Hãy trình bày 4 yếu tố dưới dạng bảng Markdown 2x2 để dễ quan sát:
+| | Positive | Negative |
+|---|---|---|
+| **Internal** | **Strengths (Điểm mạnh)**<br>*(Liệt kê 3 ý chính)* | **Weaknesses (Điểm yếu)**<br>*(Liệt kê 3 ý chính)* |
+| **External** | **Opportunities (Cơ hội)**<br>*(Liệt kê 3 ý chính)* | **Threats (Thách thức)**<br>*(Liệt kê 3 ý chính)* |
+
+**PHẦN 3: TOWS STRATEGIC ACTION PLAN (Quan trọng nhất)**
+Dựa trên bảng trên, hãy đề xuất các chiến lược lai ghép cụ thể:
+
+1.  **Chiến lược SO (Maxi-Maxi):** Sử dụng điểm mạnh nào để nắm bắt cơ hội nào?
+2.  **Chiến lược WO (Mini-Maxi):** Cần khắc phục điểm yếu nào để không bỏ lỡ cơ hội?
+3.  **Chiến lược ST (Maxi-Mini):** Dùng lợi thế nào để đối đầu hoặc né tránh rủi ro?
+4.  **Chiến lược WT (Mini-Mini):** Kế hoạch phòng thủ/rút lui để giảm thiểu thiệt hại thấp nhất.
+
+---
+**BONUS: Image Generation Prompt**
+*Prompt vẽ biểu đồ Infographic cho báo cáo này:*
+> **"Modern business infographic template showing SWOT analysis for '${data.subject}', divided into 4 colored quadrants: Blue (Strengths), Orange (Weaknesses), Green (Opportunities), Red (Threats). Professional data visualization style, clean vector icons, white background, --ar 16:9"**
 `
   },
 
