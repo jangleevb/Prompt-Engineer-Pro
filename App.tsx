@@ -9,11 +9,15 @@ import { TEMPLATES } from './constants';
 import { Template, SavedPrompt, CustomTemplateData } from './types';
 import { Menu, UserCircle, Key } from 'lucide-react';
 
+// Firebase Imports
+import { auth, googleProvider, isFirebaseConfigured } from './firebaseConfig';
+import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+
 const STORAGE_KEY_TEMPLATE = 'pe_template_id';
 const STORAGE_KEY_FORM = 'pe_form_data';
 const STORAGE_KEY_SAVED = 'pe_saved_prompts';
 const STORAGE_KEY_CUSTOM_TEMPLATES = 'pe_custom_templates';
-const STORAGE_KEY_USER = 'pe_user_profile';
+// STORAGE_KEY_USER is no longer needed as we use Firebase session
 const STORAGE_KEY_API_KEY = 'pe_user_api_key';
 
 const App: React.FC = () => {
@@ -23,44 +27,68 @@ const App: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   useEffect(() => {
-    // Load User
-    const savedUser = localStorage.getItem(STORAGE_KEY_USER);
-    if (savedUser) setUser(JSON.parse(savedUser));
+    let unsubscribe: () => void = () => {};
+
+    // Only set up Firebase listener if configured and auth is initialized
+    if (isFirebaseConfigured && auth) {
+      unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        if (currentUser) {
+          setUser({
+            name: currentUser.displayName,
+            email: currentUser.email,
+            avatar: currentUser.photoURL
+          });
+        } else {
+          setUser(null);
+        }
+      });
+    }
 
     // Load API Key
     const savedKey = localStorage.getItem(STORAGE_KEY_API_KEY);
     if (savedKey) setApiKey(savedKey);
+
+    return () => unsubscribe();
   }, []);
 
-  const handleLogin = () => {
-    // --- MOCK LOGIN IMPLEMENTATION ---
-    // In a real app, replace this with Firebase Auth:
-    // 
-    // import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-    // import { auth } from "./firebaseConfig";
-    // 
-    // const provider = new GoogleAuthProvider();
-    // signInWithPopup(auth, provider)
-    //   .then((result) => {
-    //     const user = result.user;
-    //     setUser({ name: user.displayName, email: user.email, avatar: user.photoURL });
-    //   }).catch((error) => console.error(error));
+  const handleLogin = async () => {
+    // Fallback: Mock Login if Firebase is not configured
+    if (!isFirebaseConfigured || !auth || !googleProvider) {
+      console.warn("Firebase not configured. Using Mock Login.");
+      setUser({
+        name: "Demo User",
+        email: "demo@example.com",
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=demo"
+      });
+      setIsLoginModalOpen(false);
+      alert("Đang chạy chế độ Demo (Chưa cấu hình Firebase env).");
+      return;
+    }
 
-    const mockUser = {
-      name: "Nguyễn Văn Dev",
-      email: "dev.pro@gmail.com",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
-    };
-    setUser(mockUser);
-    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(mockUser));
+    // Real Firebase Login
+    try {
+      await signInWithPopup(auth, googleProvider);
+      // onAuthStateChanged will handle setting the user state
+      setIsLoginModalOpen(false);
+    } catch (error: any) {
+      console.error("Login failed:", error);
+      alert(`Đăng nhập thất bại: ${error.message}`);
+    }
   };
 
-  const handleLogout = () => {
-    // --- REAL FIREBASE LOGOUT ---
-    // auth.signOut().then(() => setUser(null));
-    
-    setUser(null);
-    localStorage.removeItem(STORAGE_KEY_USER);
+  const handleLogout = async () => {
+    if (!isFirebaseConfigured || !auth) {
+      // Mock Logout
+      setUser(null);
+      return;
+    }
+
+    try {
+      await signOut(auth);
+      // onAuthStateChanged will handle setting user to null
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   const handleSaveApiKey = (key: string) => {
@@ -379,7 +407,7 @@ const App: React.FC = () => {
                 className="flex items-center gap-2 px-3 py-1.5 rounded-full border bg-slate-800 border-slate-700 hover:border-slate-600 hover:bg-slate-700 transition-all text-xs md:text-sm"
             >
                 {user ? (
-                   <img src={user.avatar} alt="User" className="w-5 h-5 rounded-full border border-slate-500" />
+                   <img src={user.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'} alt="User" className="w-5 h-5 rounded-full border border-slate-500" />
                 ) : (
                    <UserCircle className="w-5 h-5 text-slate-400" />
                 )}
