@@ -8,9 +8,10 @@ interface OutputDisplayProps {
   title?: string;
   onSave: () => void;
   attachedImages?: string[]; // Array of base64 data URLs
+  apiKey?: string;
 }
 
-const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave, attachedImages = [] }) => {
+const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave, attachedImages = [], apiKey }) => {
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
   
@@ -92,27 +93,24 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
     document.body.removeChild(element);
   };
 
-  const handleChangeApiKey = async () => {
-    if ((window as any).aistudio) {
-        try {
-            await (window as any).aistudio.openSelectKey();
-        } catch (e) {
-            console.error("Error selecting key:", e);
-        }
-    } else {
-        alert("Tính năng đổi API Key chỉ khả dụng trong môi trường AI Studio.");
-    }
-  };
-
   const handleRunGemini = async () => {
     if (!promptText.trim()) return;
+
+    // Priority: User Key > Env Key
+    const validKey = apiKey || process.env.API_KEY;
+
+    if (!validKey) {
+        setError("Vui lòng cấu hình API Key (nút góc trên bên phải) trước khi chạy.");
+        setActiveTab('result');
+        return;
+    }
 
     setIsLoading(true);
     setError(null);
     setActiveTab('result'); // Switch to result tab immediately
 
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: validKey });
         
         let contents: any;
 
@@ -191,15 +189,6 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
                Run with Gemini
              </button>
           )}
-
-          <button 
-            onClick={handleChangeApiKey}
-            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs rounded transition-colors flex items-center"
-            title="Đổi API Key"
-          >
-            <Key className="w-3 h-3 mr-1" />
-            API Key
-          </button>
 
           <button 
             onClick={handleSave}
@@ -298,9 +287,8 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
                         <div className="p-4 bg-red-900/20 border border-red-500/50 rounded text-red-300 flex items-start gap-3">
                             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                             <div>
-                                <h4 className="font-bold text-sm mb-1">Lỗi API</h4>
+                                <h4 className="font-bold text-sm mb-1">Lỗi API hoặc Cấu hình</h4>
                                 <p className="text-xs font-mono">{error}</p>
-                                <p className="text-xs mt-2 text-red-400">Hãy kiểm tra xem API KEY đã được cấu hình trong .env chưa.</p>
                             </div>
                         </div>
                     ) : result ? (

@@ -4,21 +4,60 @@ import InputForm from './components/InputForm';
 import OutputDisplay from './components/OutputDisplay';
 import TacticBox from './components/TacticBox';
 import CreateTemplateModal from './components/CreateTemplateModal';
+import LoginModal from './components/LoginModal';
 import { TEMPLATES } from './constants';
 import { Template, SavedPrompt, CustomTemplateData } from './types';
-import { Menu } from 'lucide-react';
+import { Menu, UserCircle, Key } from 'lucide-react';
 
 const STORAGE_KEY_TEMPLATE = 'pe_template_id';
 const STORAGE_KEY_FORM = 'pe_form_data';
 const STORAGE_KEY_SAVED = 'pe_saved_prompts';
 const STORAGE_KEY_CUSTOM_TEMPLATES = 'pe_custom_templates';
-
-// Example Community Store URL (You can replace this with your own GitHub Raw Gist URL)
-const COMMUNITY_TEMPLATES_URL = 'https://raw.githubusercontent.com/google-gemini/cookbook/main/examples/json/prompts.json'; 
-// Note: Since the above is a dummy placeholder for structure, we might simulate a fetch error or handle it gracefully.
+const STORAGE_KEY_USER = 'pe_user_profile';
+const STORAGE_KEY_API_KEY = 'pe_user_api_key';
 
 const App: React.FC = () => {
-  // --- STATES ---
+  // --- USER & API STATE ---
+  const [user, setUser] = useState<any>(null);
+  const [apiKey, setApiKey] = useState<string>('');
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+  useEffect(() => {
+    // Load User
+    const savedUser = localStorage.getItem(STORAGE_KEY_USER);
+    if (savedUser) setUser(JSON.parse(savedUser));
+
+    // Load API Key
+    const savedKey = localStorage.getItem(STORAGE_KEY_API_KEY);
+    if (savedKey) setApiKey(savedKey);
+  }, []);
+
+  const handleLogin = () => {
+    // Simulate Google Login
+    const mockUser = {
+      name: "Nguyễn Văn Dev",
+      email: "dev.pro@gmail.com",
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+    };
+    setUser(mockUser);
+    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(mockUser));
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem(STORAGE_KEY_USER);
+  };
+
+  const handleSaveApiKey = (key: string) => {
+    setApiKey(key);
+    if (key) {
+      localStorage.setItem(STORAGE_KEY_API_KEY, key);
+    } else {
+      localStorage.removeItem(STORAGE_KEY_API_KEY);
+    }
+  };
+
+  // --- TEMPLATE STATES ---
   
   // 1. LOCAL DATA (Offline - User Created)
   const [customTemplatesData, setCustomTemplatesData] = useState<CustomTemplateData[]>(() => {
@@ -201,13 +240,7 @@ const App: React.FC = () => {
   const handleFetchOnlineTemplates = async () => {
     setIsFetchingOnline(true);
     try {
-        // For demonstration, we'll simulate a fetch since the URL above might not have the exact schema we need.
-        // In a real app, you would fetch(COMMUNITY_TEMPLATES_URL)
-        
-        // Simulating network delay
         await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Mock Data simulation
         const mockOnlineData: CustomTemplateData[] = [
             {
                 id: "online_seo_expert",
@@ -257,15 +290,10 @@ const App: React.FC = () => {
         if (!Array.isArray(json)) {
           throw new Error("Format không hợp lệ: Root phải là Array.");
         }
-        
-        // Validate structure
         const validTemplates = json.filter((t: any) => t.id && t.title && t.inputs && t.templateString);
-        
         if (validTemplates.length === 0) {
            throw new Error("Không tìm thấy template hợp lệ trong file.");
         }
-
-        // Avoid duplicates ID
         const currentIds = new Set(customTemplatesData.map(t => t.id));
         const newTemplates = validTemplates.filter((t: CustomTemplateData) => !currentIds.has(t.id));
 
@@ -316,52 +344,82 @@ const App: React.FC = () => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-hidden relative">
         
-        {/* Mobile Header */}
-        <div className="md:hidden p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900">
-          <span className="font-bold text-slate-100">Prompt Engineer Pro</span>
-          <button onClick={() => setIsMobileMenuOpen(true)} className="text-slate-400 p-1 hover:text-white transition-colors">
-            <Menu className="w-6 h-6" />
-          </button>
-        </div>
+        {/* Main Header (Desktop & Mobile) */}
+        <header className="h-16 border-b border-slate-800 bg-slate-900/80 backdrop-blur flex items-center justify-between px-4 md:px-8 z-10 shrink-0">
+            <div className="flex items-center gap-3">
+                 {/* Mobile Menu Toggle */}
+                <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-slate-400 p-1 hover:text-white transition-colors">
+                    <Menu className="w-6 h-6" />
+                </button>
+                <div className="hidden md:block">
+                    <h1 className="font-bold text-white text-lg">
+                        {selectedTemplate ? selectedTemplate.title : "Prompt Engineer Pro"}
+                    </h1>
+                </div>
+            </div>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Right Action: Login / Key */}
+            <button 
+                onClick={() => setIsLoginModalOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full border bg-slate-800 border-slate-700 hover:border-slate-600 hover:bg-slate-700 transition-all text-xs md:text-sm"
+            >
+                {user ? (
+                   <img src={user.avatar} alt="User" className="w-5 h-5 rounded-full border border-slate-500" />
+                ) : (
+                   <UserCircle className="w-5 h-5 text-slate-400" />
+                )}
+                
+                <div className="flex flex-col items-start leading-none">
+                    <span className="font-bold text-slate-200">
+                        {user ? user.name : "Đăng nhập / Key"}
+                    </span>
+                    {apiKey && (
+                        <span className="text-[10px] text-green-400 font-mono flex items-center gap-1 mt-0.5">
+                            <Key className="w-2.5 h-2.5" /> API KEY: ACTIVE
+                        </span>
+                    )}
+                </div>
+            </button>
+        </header>
+
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 scroll-smooth">
             
           {/* Left Column: Config */}
           <div className="space-y-6">
-            <div>
+            <div className="md:hidden">
               <h2 className="text-2xl font-bold text-white mb-2">
-                {selectedTemplate ? selectedTemplate.title : "Chọn một kịch bản"}
+                {selectedTemplate ? selectedTemplate.title : "Chào mừng"}
               </h2>
               <p className="text-slate-400 text-sm mb-4">
-                {selectedTemplate ? selectedTemplate.desc : "Hãy chọn template từ danh sách hoặc tạo mới."}
+                {selectedTemplate ? selectedTemplate.desc : "Hãy chọn một template để bắt đầu."}
               </p>
-              
-              {/* Badges */}
-              {selectedTemplate && (
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {selectedTemplate.tags.map(tag => (
-                    <span key={tag} className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-xs text-sky-400 font-mono">
-                      {tag}
-                    </span>
-                  ))}
-                  {/* Source Badge */}
+            </div>
+            
+            {/* Badges (Only show on desktop here, mobile shows above if needed but kept simple) */}
+            {selectedTemplate && (
+              <div className="flex flex-wrap gap-2 mb-2">
                   <span className={`px-2 py-1 rounded border text-xs font-mono uppercase ${
                       selectedTemplate.source === 'local' ? 'bg-indigo-900/50 border-indigo-700 text-indigo-300' :
                       selectedTemplate.source === 'online' ? 'bg-green-900/50 border-green-700 text-green-300' :
                       'bg-slate-800 border-slate-700 text-slate-400'
                   }`}>
-                    {selectedTemplate.source === 'local' ? 'Local / Personal' : 
-                     selectedTemplate.source === 'online' ? 'Online / Community' : 'System / Built-in'}
+                    {selectedTemplate.source === 'local' ? 'Personal' : 
+                     selectedTemplate.source === 'online' ? 'Community' : 'System'}
                   </span>
-                </div>
-              )}
-            </div>
+                  {selectedTemplate.tags.map(tag => (
+                    <span key={tag} className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-xs text-sky-400 font-mono">
+                      {tag}
+                    </span>
+                  ))}
+              </div>
+            )}
 
             {/* Form Inputs */}
             <InputForm 
               template={selectedTemplate} 
               formData={formData} 
               onChange={handleInputChange} 
+              apiKey={apiKey}
             />
 
             {/* Explain Box */}
@@ -376,6 +434,7 @@ const App: React.FC = () => {
             onSave={handleSavePrompt}
             title={selectedTemplate?.title}
             attachedImages={attachedImages}
+            apiKey={apiKey}
           />
 
         </div>
@@ -388,6 +447,17 @@ const App: React.FC = () => {
           onSave={handleSaveCustomTemplate}
         />
       )}
+
+      {/* Login & API Modal */}
+      <LoginModal 
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        user={user}
+        onLogin={handleLogin}
+        onLogout={handleLogout}
+        apiKey={apiKey}
+        onSaveKey={handleSaveApiKey}
+      />
     </div>
   );
 };

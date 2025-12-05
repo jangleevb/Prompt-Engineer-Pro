@@ -7,9 +7,10 @@ interface InputFormProps {
   template: Template | null;
   formData: Record<string, string>;
   onChange: (id: string, value: string) => void;
+  apiKey?: string;
 }
 
-const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange }) => {
+const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange, apiKey }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textFileInputRef = useRef<HTMLInputElement>(null);
   const [fillingId, setFillingId] = useState<string | null>(null);
@@ -55,15 +56,17 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange }) =
   const handleMagicFill = async (input: InputConfig) => {
     if (!template) return;
     
-    // Basic check for API Key availability
-    if (!process.env.API_KEY) {
-        alert("Cần có API Key để sử dụng tính năng Magic Fill.");
+    // Priority: User Key > Env Key
+    const validKey = apiKey || process.env.API_KEY;
+
+    if (!validKey) {
+        alert("Vui lòng nhập API Key (nút góc trên bên phải) để sử dụng Magic Fill.");
         return;
     }
 
     setFillingId(input.id);
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: validKey });
         const prompt = `Context: User is filling a form for a prompt template titled "${template.title}" - ${template.desc}.
         
         Task: Generate a realistic, creative, and specific example value for the input field labeled "${input.label}".
@@ -84,7 +87,7 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange }) =
         }
     } catch (err) {
         console.error("Magic fill error:", err);
-        // Fallback or silent fail
+        alert("Lỗi khi gọi AI. Vui lòng kiểm tra lại API Key.");
     } finally {
         setFillingId(null);
     }
