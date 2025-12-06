@@ -85,9 +85,15 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange, api
             const cleanText = text.replace(/^"|"$/g, '');
             onChange(input.id, cleanText);
         }
-    } catch (err) {
+    } catch (err: any) {
         console.error("Magic fill error:", err);
-        alert("Lỗi khi gọi AI. Vui lòng kiểm tra lại API Key.");
+        let errorMsg = "Lỗi khi gọi AI.";
+        if (err.message?.includes('403') || err.message?.includes('API key')) {
+          errorMsg = "API Key không chính xác hoặc không có quyền truy cập. Vui lòng kiểm tra lại trong phần Cài đặt.";
+        } else if (err.message) {
+          errorMsg = `Lỗi: ${err.message.slice(0, 100)}`;
+        }
+        alert(errorMsg);
     } finally {
         setFillingId(null);
     }

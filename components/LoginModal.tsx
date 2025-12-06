@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, User, Key, LogOut, Check, ShieldCheck, AlertCircle, Save, Trash2, ClipboardPaste } from 'lucide-react';
+import { X, User, Key, LogOut, Check, ShieldCheck, AlertCircle, Save, Trash2, ClipboardPaste, Zap, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { GoogleGenAI } from "@google/genai";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -17,6 +18,12 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const [activeTab, setActiveTab] = useState<'account' | 'api'>('account');
   const [tempKey, setTempKey] = useState(apiKey);
   const [showSuccess, setShowSuccess] = useState(false);
+  
+  // Test Connection State
+  const [isTesting, setIsTesting] = useState(false);
+  const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [testMessage, setTestMessage] = useState('');
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -38,9 +45,19 @@ const LoginModal: React.FC<LoginModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  // Reset test status when key changes
+  useEffect(() => {
+    setTestStatus('idle');
+    setTestMessage('');
+  }, [tempKey]);
+
   if (!isOpen) return null;
 
   const handleSaveKey = () => {
+    if (tempKey && !validateKeyFormat(tempKey)) {
+        // Allow saving but show alert? Or block?
+        // We will allow saving but user should have seen the validation error visually.
+    }
     onSaveKey(tempKey);
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 2000);
@@ -49,6 +66,8 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const handleClearKey = () => {
     setTempKey('');
     onSaveKey('');
+    setTestStatus('idle');
+    setTestMessage('');
     inputRef.current?.focus();
   };
 
@@ -68,6 +87,54 @@ const LoginModal: React.FC<LoginModalProps> = ({
   const handleInputKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
         handleSaveKey();
+    }
+  };
+
+  const validateKeyFormat = (key: string): boolean => {
+    if (!key) return false;
+    if (key.trim().startsWith('sk-')) {
+        setTestStatus('error');
+        setTestMessage('Đây có vẻ là API Key của OpenAI. Vui lòng nhập Gemini API Key.');
+        return false;
+    }
+    if (key.length < 30) {
+        setTestStatus('error');
+        setTestMessage('API Key có vẻ quá ngắn. Vui lòng kiểm tra lại.');
+        return false;
+    }
+    return true;
+  };
+
+  const handleTestConnection = async () => {
+    if (!tempKey) return;
+    
+    // Client-side validation
+    if (!validateKeyFormat(tempKey)) return;
+
+    setIsTesting(true);
+    setTestStatus('idle');
+    setTestMessage('');
+    
+    try {
+        const ai = new GoogleGenAI({ apiKey: tempKey });
+        // Make a minimal call to verify
+        await ai.models.generateContent({
+             model: 'gemini-2.5-flash',
+             contents: 'Hello',
+        });
+        setTestStatus('success');
+        setTestMessage('Kết nối thành công! API Key hợp lệ.');
+    } catch (e: any) {
+        setTestStatus('error');
+        let msg = `Kết nối thất bại.`;
+        if (e.message?.includes('403') || e.message?.includes('API key')) {
+             msg = "API Key không chính xác hoặc không có quyền truy cập.";
+        } else {
+             msg = `Lỗi: ${e.message?.slice(0, 60)}...`;
+        }
+        setTestMessage(msg);
+    } finally {
+        setIsTesting(false);
     }
   };
 
@@ -183,13 +250,26 @@ const LoginModal: React.FC<LoginModalProps> = ({
                <div className="space-y-2 flex-1">
                  <div className="flex justify-between items-center">
                     <label className="block text-sm font-bold text-slate-300">Google Gemini API Key</label>
-                    <button 
-                        onClick={handlePasteKey}
-                        className="text-[10px] flex items-center gap-1 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30 px-2 py-1 rounded transition-colors"
-                        title="Dán từ Clipboard"
-                    >
-                        <ClipboardPaste className="w-3 h-3" /> Paste
-                    </button>
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={handleTestConnection}
+                            disabled={!tempKey || isTesting}
+                            className={`text-[10px] flex items-center gap-1 px-2 py-1 rounded transition-colors ${
+                                isTesting ? 'bg-slate-700 text-slate-400' : 'bg-indigo-900/40 text-indigo-400 hover:bg-indigo-900/60'
+                            }`}
+                            title="Kiểm tra kết nối"
+                        >
+                            {isTesting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
+                            Test Connection
+                        </button>
+                        <button 
+                            onClick={handlePasteKey}
+                            className="text-[10px] flex items-center gap-1 text-slate-400 hover:text-white hover:bg-slate-800 px-2 py-1 rounded transition-colors"
+                            title="Dán từ Clipboard"
+                        >
+                            <ClipboardPaste className="w-3 h-3" /> Paste
+                        </button>
+                    </div>
                  </div>
                  
                  <div className="relative group">
@@ -199,14 +279,40 @@ const LoginModal: React.FC<LoginModalProps> = ({
                       value={tempKey}
                       onChange={(e) => setTempKey(e.target.value)}
                       onKeyDown={handleInputKeyDown}
-                      placeholder="sk-..."
-                      className="w-full p-3 pl-10 bg-slate-800 border border-slate-700 rounded-lg text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none font-mono text-sm transition-all placeholder-slate-600"
+                      placeholder="AIza..."
+                      className={`w-full p-3 pl-10 bg-slate-800 border rounded-lg text-white outline-none font-mono text-sm transition-all placeholder-slate-600 ${
+                        testStatus === 'error' ? 'border-red-500 focus:ring-1 focus:ring-red-500' :
+                        testStatus === 'success' ? 'border-green-500 focus:ring-1 focus:ring-green-500' :
+                        'border-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                      }`}
                       spellCheck={false}
                     />
-                    <Key className="w-4 h-4 text-slate-500 absolute left-3 top-3.5 group-focus-within:text-indigo-400 transition-colors" />
+                    <Key className={`w-4 h-4 absolute left-3 top-3.5 transition-colors ${
+                        testStatus === 'error' ? 'text-red-500' :
+                        testStatus === 'success' ? 'text-green-500' :
+                        'text-slate-500 group-focus-within:text-indigo-400'
+                    }`} />
+                    
+                    {/* Status Indicator Icon inside Input */}
+                    {testStatus !== 'idle' && (
+                        <div className="absolute right-3 top-3.5">
+                            {testStatus === 'success' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                            {testStatus === 'error' && <XCircle className="w-4 h-4 text-red-500" />}
+                        </div>
+                    )}
                  </div>
 
-                 <div className="flex justify-between items-center text-xs mt-1 px-1">
+                 {/* Test Result Message */}
+                 {testMessage && (
+                     <div className={`text-xs px-1 flex items-start gap-1.5 ${
+                         testStatus === 'success' ? 'text-green-400' : 'text-red-400'
+                     }`}>
+                         <span className="mt-0.5">{testStatus === 'success' ? '✓' : '✕'}</span>
+                         <span>{testMessage}</span>
+                     </div>
+                 )}
+
+                 <div className="flex justify-between items-center text-xs mt-1 px-1 pt-1">
                      <span className="text-slate-500 hidden sm:inline">Nhấn <kbd className="font-mono bg-slate-800 border border-slate-700 px-1 rounded text-[10px]">Enter</kbd> để lưu</span>
                      <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-sky-400 hover:text-sky-300 hover:underline flex items-center gap-1 ml-auto">
                       Lấy API Key miễn phí <span className="text-lg leading-none">&rsaquo;</span>
@@ -226,10 +332,11 @@ const LoginModal: React.FC<LoginModalProps> = ({
                  )}
                  <button 
                     onClick={handleSaveKey}
+                    disabled={isTesting}
                     className={`flex-1 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 ${
                       showSuccess 
                       ? 'bg-green-600 text-white focus:ring-green-500' 
-                      : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/20 focus:ring-indigo-500'
+                      : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/20 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed'
                     }`}
                  >
                     {showSuccess ? <Check className="w-5 h-5" /> : <Save className="w-4 h-4" />}
