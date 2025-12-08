@@ -5,8 +5,13 @@ import { getAuth, GoogleAuthProvider, Auth } from "firebase/auth";
 const env = (import.meta as any).env || {};
 
 // Check if API key is present and not the default placeholder
+// Also checking length > 10 to avoid dummy strings
 const apiKey = env.VITE_FIREBASE_API_KEY;
-export const isFirebaseConfigured = !!apiKey && apiKey !== "YOUR_API_KEY_HERE";
+export const isFirebaseConfigured = 
+  !!apiKey && 
+  apiKey.length > 10 &&
+  apiKey !== "YOUR_API_KEY_HERE" &&
+  !apiKey.includes("YOUR_API_KEY");
 
 // Default config or actual config
 const firebaseConfig = {

@@ -7,7 +7,7 @@ import CreateTemplateModal from './components/CreateTemplateModal';
 import LoginModal from './components/LoginModal';
 import { TEMPLATES } from './constants';
 import { Template, SavedPrompt, CustomTemplateData } from './types';
-import { Menu, UserCircle, Key } from 'lucide-react';
+import { Menu, UserCircle, Key, Pencil, Trash2 } from 'lucide-react';
 
 // Firebase Imports
 import { auth, googleProvider, isFirebaseConfigured } from './firebaseConfig';
@@ -72,6 +72,19 @@ const App: React.FC = () => {
       setIsLoginModalOpen(false);
     } catch (error: any) {
       console.error("Login failed:", error);
+      
+      // Handle Invalid API Key by falling back to Mock Mode
+      if (error.code === 'auth/api-key-not-valid' || error.message?.includes('api-key-not-valid')) {
+         alert("Cấu hình Firebase không hợp lệ (API Key sai). Đang chuyển sang chế độ Demo.");
+         setUser({
+            name: "Demo User",
+            email: "demo@example.com",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=demo"
+         });
+         setIsLoginModalOpen(false);
+         return;
+      }
+      
       alert(`Đăng nhập thất bại: ${error.message}`);
     }
   };
@@ -88,6 +101,8 @@ const App: React.FC = () => {
       // onAuthStateChanged will handle setting user to null
     } catch (error) {
       console.error("Logout failed:", error);
+      // Force local logout if firebase fails
+      setUser(null);
     }
   };
 
@@ -157,6 +172,12 @@ const App: React.FC = () => {
     return [...systemTemplates, ...localTemplates, ...onlineTemplates];
   }, [systemTemplates, localTemplates, onlineTemplates]);
 
+  // Get Unique Categories for suggestion
+  const uniqueCategories = useMemo(() => {
+    const categories = new Set(allTemplates.map(t => t.category));
+    return Array.from(categories);
+  }, [allTemplates]);
+
   // Selected Template State
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(() => {
     const savedId = localStorage.getItem(STORAGE_KEY_TEMPLATE);
@@ -193,7 +214,10 @@ const App: React.FC = () => {
   const [generatedPrompt, setGeneratedPrompt] = useState<string>("// Điền thông tin bên trái để tạo Prompt...");
   const [attachedImages, setAttachedImages] = useState<string[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Create / Edit Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingTemplateData, setEditingTemplateData] = useState<CustomTemplateData | null>(null);
 
   // --- EFFECTS ---
 
@@ -274,8 +298,45 @@ const App: React.FC = () => {
     }
   };
 
+  // --- CUSTOM TEMPLATE CRUD ---
+
   const handleSaveCustomTemplate = (newTemplateData: CustomTemplateData) => {
-    setCustomTemplatesData(prev => [...prev, newTemplateData]);
+    // Check if updating or creating
+    const isUpdating = customTemplatesData.some(t => t.id === newTemplateData.id);
+
+    if (isUpdating) {
+        setCustomTemplatesData(prev => prev.map(t => t.id === newTemplateData.id ? newTemplateData : t));
+        // If we are currently viewing this template, update the selection info
+        if (selectedTemplate?.id === newTemplateData.id) {
+            setSelectedTemplate(convertToTemplate(newTemplateData, 'local'));
+        }
+    } else {
+        setCustomTemplatesData(prev => [...prev, newTemplateData]);
+    }
+  };
+
+  const handleEditCurrentTemplate = () => {
+    if (!selectedTemplate || selectedTemplate.source !== 'local') return;
+    
+    const rawData = customTemplatesData.find(t => t.id === selectedTemplate.id);
+    if (rawData) {
+        setEditingTemplateData(rawData);
+        setIsCreateModalOpen(true);
+    }
+  };
+
+  const handleDeleteCurrentTemplate = () => {
+    if (!selectedTemplate || selectedTemplate.source !== 'local') return;
+
+    if (window.confirm(`Bạn có chắc muốn xóa template "${selectedTemplate.title}" không?`)) {
+        setCustomTemplatesData(prev => prev.filter(t => t.id !== selectedTemplate.id));
+        setSelectedTemplate(null);
+    }
+  };
+
+  const handleOpenCreateModal = () => {
+      setEditingTemplateData(null); // Reset for new creation
+      setIsCreateModalOpen(true);
   };
 
   // --- ONLINE / IMPORT / EXPORT LOGIC ---
@@ -375,7 +436,7 @@ const App: React.FC = () => {
         onSelectTemplate={handleSelectTemplate}
         onLoadSavedPrompt={handleLoadSavedPrompt}
         onDeleteSavedPrompt={handleDeleteSavedPrompt}
-        onOpenCreateModal={() => setIsCreateModalOpen(true)}
+        onOpenCreateModal={handleOpenCreateModal}
         onExportTemplates={handleExportTemplates}
         onImportTemplates={handleImportTemplates}
         onFetchOnline={handleFetchOnlineTemplates}
@@ -394,10 +455,30 @@ const App: React.FC = () => {
                 <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-slate-400 p-1 hover:text-white transition-colors">
                     <Menu className="w-6 h-6" />
                 </button>
-                <div className="hidden md:block">
+                <div className="flex items-center gap-3">
                     <h1 className="font-bold text-white text-lg">
                         {selectedTemplate ? selectedTemplate.title : "Prompt Engineer Pro"}
                     </h1>
+                    
+                    {/* Action Buttons for Custom Templates */}
+                    {selectedTemplate && selectedTemplate.source === 'local' && (
+                        <div className="flex items-center gap-1 ml-2 border-l border-slate-700 pl-3">
+                            <button 
+                                onClick={handleEditCurrentTemplate}
+                                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-colors"
+                                title="Chỉnh sửa Template này"
+                            >
+                                <Pencil className="w-4 h-4" />
+                            </button>
+                            <button 
+                                onClick={handleDeleteCurrentTemplate}
+                                className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded transition-colors"
+                                title="Xóa Template này"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -483,11 +564,13 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      {/* Create Template Modal */}
+      {/* Create / Edit Template Modal */}
       {isCreateModalOpen && (
         <CreateTemplateModal 
           onClose={() => setIsCreateModalOpen(false)}
           onSave={handleSaveCustomTemplate}
+          initialData={editingTemplateData}
+          existingCategories={uniqueCategories}
         />
       )}
 

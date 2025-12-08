@@ -1,13 +1,20 @@
-import React, { useState, useRef } from 'react';
-import { X, Plus, Trash2, Save, GripVertical } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Plus, Trash2, Save, GripVertical, List } from 'lucide-react';
 import { InputConfig, CustomTemplateData } from '../types';
 
 interface CreateTemplateModalProps {
   onClose: () => void;
   onSave: (template: CustomTemplateData) => void;
+  initialData?: CustomTemplateData | null; // For Editing Mode
+  existingCategories?: string[]; // For Category Suggestions
 }
 
-const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ onClose, onSave }) => {
+const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ 
+  onClose, 
+  onSave, 
+  initialData, 
+  existingCategories = [] 
+}) => {
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
   const [category, setCategory] = useState('Custom');
@@ -16,6 +23,17 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ onClose, onSa
   
   // Drag and Drop State
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  // Initialize data if in Edit Mode
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title);
+      setDesc(initialData.desc);
+      setCategory(initialData.category);
+      setInputs(initialData.inputs);
+      setTemplateString(initialData.templateString);
+    }
+  }, [initialData]);
 
   // Helper for input creation
   const addInput = () => {
@@ -70,11 +88,12 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ onClose, onSa
     }
     
     const newTemplate: CustomTemplateData = {
-      id: `custom_${Date.now()}`,
+      // If editing, keep old ID, else generate new ID
+      id: initialData ? initialData.id : `custom_${Date.now()}`,
       title,
       desc,
-      category,
-      tags: ['Custom'],
+      category: category || 'Custom',
+      tags: initialData ? initialData.tags : ['Custom'], // Preserve tags or default
       inputs,
       templateString
     };
@@ -84,11 +103,13 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ onClose, onSa
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in duration-200">
         
         <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900">
-          <h2 className="text-lg font-bold text-white">Tạo Template Mới</h2>
+          <h2 className="text-lg font-bold text-white">
+            {initialData ? 'Chỉnh sửa Template' : 'Tạo Template Mới'}
+          </h2>
           <button onClick={onClose} className="text-slate-400 hover:text-white">
             <X className="w-5 h-5" />
           </button>
@@ -107,12 +128,28 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ onClose, onSa
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-400 mb-1">Danh mục</label>
-              <input 
-                value={category} onChange={e => setCategory(e.target.value)}
-                className="w-full p-2 rounded bg-slate-800 border border-slate-700 text-sm text-white focus:border-sky-500 outline-none"
-                placeholder="Custom, Personal..."
-              />
+              <label className="block text-xs font-bold text-slate-400 mb-1 flex justify-between">
+                Danh mục (Phân loại)
+              </label>
+              <div className="relative">
+                <input 
+                  value={category} 
+                  onChange={e => setCategory(e.target.value)}
+                  className="w-full p-2 rounded bg-slate-800 border border-slate-700 text-sm text-white focus:border-sky-500 outline-none"
+                  placeholder="Chọn hoặc nhập mới..."
+                  list="category-suggestions"
+                />
+                <List className="absolute right-2 top-2.5 w-4 h-4 text-slate-500 pointer-events-none" />
+                <datalist id="category-suggestions">
+                  {existingCategories.map(cat => (
+                    <option key={cat} value={cat} />
+                  ))}
+                  <option value="Marketing" />
+                  <option value="Coding" />
+                  <option value="Writing" />
+                  <option value="Business" />
+                </datalist>
+              </div>
             </div>
           </div>
           
@@ -168,6 +205,7 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ onClose, onSa
                           <option value="text">Short Text</option>
                           <option value="textarea">Long Text</option>
                           <option value="image">Image Upload</option>
+                          <option value="file">File Upload</option>
                         </select>
                     </div>
                     <div className="flex items-center gap-2">
@@ -206,7 +244,8 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ onClose, onSa
         <div className="p-4 border-t border-slate-800 bg-slate-900 flex justify-end gap-3">
           <button onClick={onClose} className="px-4 py-2 text-sm text-slate-300 hover:text-white transition-colors">Hủy</button>
           <button onClick={handleSave} className="px-4 py-2 text-sm bg-sky-600 hover:bg-sky-500 text-white rounded font-bold flex items-center shadow-lg shadow-sky-900/20 transition-all">
-            <Save className="w-4 h-4 mr-2" /> Lưu Template
+            <Save className="w-4 h-4 mr-2" /> 
+            {initialData ? 'Cập nhật Template' : 'Lưu Template Mới'}
           </button>
         </div>
       </div>

@@ -68,7 +68,36 @@ ${data.user_behavior_data ? '5' : '4'}. **Chiến thuật hành động:** ${dat
 `
   },
   {
-    id: "mmo_google_ads",
+    id: "mmo_seeding",
+    source: "system",
+    category: "MMO & Ads",
+    iconName: "users",
+    title: "Kịch Bản Seeding & Forum Marketing",
+    desc: "Tạo các cuộc thảo luận seeding tự nhiên trên hội nhóm, diễn đàn để điều hướng dư luận.",
+    tags: ["Seeding", "Social Listening", "Organic Traffic"],
+    tactic: "Sử dụng kỹ thuật **Multi-Persona Simulation** (Giả lập đa nhân cách). Bạn không muốn seeding trông giống bot. Prompt này yêu cầu AI tạo ra 3-4 nhân vật (Người hỏi ngây ngô, Chuyên gia khó tính, Người dùng đã trải nghiệm...) để tạo ra một cuộc tranh luận sôi nổi nhưng cuối cùng vẫn hướng về sản phẩm của bạn một cách khéo léo.",
+    inputs: [
+      { id: "topic", label: "Chủ đề thảo luận", placeholder: "Hỏi về khóa học tiếng Anh nào tốt cho người mất gốc?", type: "text" },
+      { id: "product", label: "Sản phẩm cần Seeding (Subtle)", placeholder: "App Elsa Speak", type: "text" },
+      { id: "platform", label: "Nền tảng (Group/Forum)", placeholder: "Voz, Group Tinh Tế, Group Review...", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là chuyên gia Social Seeding và Community Manager.
+**Task:** Viết một kịch bản thảo luận (Thread) tự nhiên trên ${data.platform || 'Mạng xã hội'} để seeding cho sản phẩm: "${data.product}".
+
+**Chủ đề:** ${data.topic || '[Topic]'}
+
+**Yêu cầu:** Hãy tạo ra 4 bình luận (Comments) từ 4 người dùng khác nhau:
+1.  **User A (The Asker):** Đặt câu hỏi hoặc nêu vấn đề một cách tự nhiên, hơi ngây ngô.
+2.  **User B (The Skeptic):** Đưa ra ý kiến trái chiều hoặc nghi ngờ các giải pháp thông thường (Tạo tính chân thực).
+3.  **User C (The Supporter):** Chia sẻ trải nghiệm cá nhân tích cực về "${data.product}" nhưng không dẫn link mua hàng ngay (Soft sell).
+4.  **User D (The Expert):** Phân tích khách quan và xác nhận ý kiến của User C là đúng.
+
+**Tone:** Sử dụng ngôn ngữ mạng (slang, teencode nhẹ) phù hợp với văn hóa của ${data.platform}. Tránh văn mẫu quảng cáo.
+`
+  },
+  {
+    id: "mmo_google_Ads",
     source: "system",
     category: "MMO & Ads",
     iconName: "target",
@@ -258,6 +287,37 @@ Dựa trên phân tích trên, hãy viết **3 Prompts** (bằng tiếng Anh) đ
 `
   },
   {
+    id: "media_moodboard",
+    source: "system",
+    category: "Creative & Media",
+    iconName: "palette",
+    title: "Brand Identity & Moodboard",
+    desc: "Xây dựng định hướng hình ảnh (Visual Identity), bảng màu và moodboard cho thương hiệu.",
+    tags: ["Branding", "Design", "Color Palette"],
+    tactic: "Sử dụng kỹ thuật **Visual Synesthesia** (Cảm giác kèm). AI sẽ chuyển đổi các giá trị trừu tượng của thương hiệu (Sứ mệnh, Tính cách) thành các yếu tố thị giác cụ thể (Màu sắc, Font chữ, Họa tiết). Kết quả bao gồm mã màu Hex và gợi ý hình ảnh để designer dễ dàng thực hiện.",
+    inputs: [
+      { id: "brand_name", label: "Tên thương hiệu", placeholder: "Lumos Candles", type: "text" },
+      { id: "values", label: "Giá trị cốt lõi / Tính cách", placeholder: "Thư giãn, sang trọng, tối giản, thân thiện môi trường", type: "textarea" },
+      { id: "target_audience", label: "Khách hàng mục tiêu", placeholder: "Phụ nữ 25-40 tuổi, thu nhập khá, yêu yoga", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Creative Director và Brand Strategist.
+**Task:** Xây dựng định hướng hình ảnh (Visual Identity) cho thương hiệu: "${data.brand_name}".
+
+**Context:**
+- **Values:** ${data.values || '[Giá trị]'}
+- **Audience:** ${data.target_audience || '[Khách hàng]'}
+
+**Yêu cầu Output:**
+1.  **Brand Concept:** Mô tả ngắn gọn phong cách chủ đạo (Ví dụ: Minimalist Zen, Retro Pop...).
+2.  **Color Palette (Bảng màu):** Cung cấp 5 mã màu HEX (1 màu chính, 2 màu phụ, 2 màu nhấn). Giải thích ý nghĩa tâm lý của từng màu.
+3.  **Typography (Font chữ):** Đề xuất cặp font (Tiêu đề & Nội dung) phù hợp.
+4.  **Imagery & Mood:** Mô tả loại hình ảnh nên sử dụng (Ánh sáng, filter, bố cục).
+
+**Bonus Prompt:** Viết 1 prompt để tạo ảnh Moodboard tổng thể bằng AI (Midjourney).
+`
+  },
+  {
     id: "media_content_audit",
     source: "system",
     category: "Creative & Media",
@@ -429,25 +489,27 @@ Hãy đưa ra 3 concept thumbnail khác nhau. Với mỗi ý tưởng, mô tả 
       { id: "style", label: "Phong cách thiết kế", placeholder: "Flat Design, 3D Isometric, Hand-drawn, Corporate Blue...", type: "text" }
     ],
     generate: (data) => `
-**Role:** Bạn là AI Art Director chuyên về Data Visualization.
-**Task:** Viết một Image Generation Prompt chi tiết để tạo nền cho một Infographic về chủ đề: "${data.topic || '[Chủ đề]'}"
+**Role:** Bạn là AI Art Director và Midjourney Prompt Expert.
+**Task:** Viết 3 Image Generation Prompts khác nhau để tạo nền cho Infographic chủ đề: "${data.topic || '[Topic]'}"
 
-**Nội dung chính cần thể hiện:**
-${data.points || '[Dữ liệu]'}
+**Data Context:**
+${data.points || '[Data Points]'}
 
-**Phong cách:** ${data.style || 'Modern Flat Design'}.
+**Style:** ${data.style || 'Modern Flat Design, Vector style'}.
 
 **Yêu cầu Output:**
-Hãy viết 3 Prompt khác nhau (dùng cho Midjourney v6 hoặc Gemini Image Gen):
+Hãy viết 3 prompt tiếng Anh (English) tối ưu cho AI vẽ tranh (Midjourney/DALL-E):
 
-1. **Layout Prompt (Dạng Timeline/Process):** Tập trung vào dòng chảy từ trái sang phải hoặc từ trên xuống dưới.
-   - *Cấu trúc:* [Subject] infographic, flow chart layout, 5 distinct steps, connected by arrows...
-2. **Layout Prompt (Dạng Grid/Comparison):** Tập trung vào so sánh hoặc liệt kê.
-   - *Cấu trúc:* [Subject] infographic, grid layout, symmetrical balance, clean icons...
-3. **Stylized Prompt (Dạng Isometric 3D):** Tập trung vào sự ấn tượng thị giác.
-   - *Cấu trúc:* 3D isometric infographic map, floating elements, high detail...
+1. **Option 1: Timeline/Process Layout**
+   - *Prompt Structure:* /imagine prompt: [Subject] infographic template, timeline layout, horizontal flow, distinct steps, [Style keywords], white background, high resolution --ar 3:2
 
-*Lưu ý cho AI:* Thêm các tham số kỹ thuật như "--ar 2:3" (cho khổ dọc) hoặc "--v 6.0" vào cuối prompt.
+2. **Option 2: Modular Grid Layout**
+   - *Prompt Structure:* /imagine prompt: [Subject] data visualization, modular grid system, clean hierarchy, comparison charts, [Style keywords], ui/ux design style --ar 2:3
+
+3. **Option 3: Creative/Abstract Representation**
+   - *Prompt Structure:* /imagine prompt: [Subject] represented as [Metaphor], 3D isometric view, floating elements, infographic style, [Style keywords], c4d render, octane render --ar 16:9
+
+*Lưu ý:* Thay thế [Subject] và [Style keywords] bằng nội dung cụ thể từ yêu cầu trên. Giữ nguyên các tham số kỹ thuật.
 `
   },
 
@@ -540,6 +602,50 @@ Hãy cung cấp trọn bộ cấu trúc dự án bao gồm nội dung các file 
 `
   },
   {
+    id: "tech_webapp_tool",
+    source: "system",
+    category: "Coder & Tech",
+    iconName: "globe",
+    title: "Kiến Trúc Sư Web App Tool",
+    desc: "Dựng khung (Scaffold) cho Web App Tool (React, Vue, Next.js) tích hợp API và giao diện hiện đại.",
+    tags: ["Web Development", "React/Next.js", "Frontend Architecture", "UI/UX"],
+    tactic: "Sử dụng **Component-Based Architecture Strategy**. AI sẽ tư duy về việc chia nhỏ giao diện thành các Component tái sử dụng (Atomic Design), thiết kế State Management (Context/Redux) và xử lý API layer tách biệt. Kết quả là một bộ khung code sạch, dễ mở rộng.",
+    inputs: [
+      { id: "app_name", label: "Tên Web Tool", placeholder: "Tool Quản Lý Ads Facebook", type: "text" },
+      { id: "tech_stack", label: "Tech Stack mong muốn", placeholder: "React + Vite + Tailwind CSS + Supabase", type: "text" },
+      { id: "features", label: "Các chức năng chính", placeholder: "Login, Dashboard hiển thị biểu đồ, Import Excel, Export Report", type: "textarea" },
+      { id: "ui_style", label: "Phong cách UI", placeholder: "Modern Dashboard, Dark Mode, Minimalist...", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Senior Full-stack Web Developer và UI/UX Architect.
+**Task:** Thiết kế kiến trúc và viết code khung (Scaffolding) cho Web Application: "${data.app_name || '[Tên App]'}".
+
+**Tech Stack:** ${data.tech_stack || 'React, Vite, Tailwind CSS'}.
+**Phong cách UI:** ${data.ui_style || 'Modern & Clean'}.
+
+**Chức năng yêu cầu:**
+${data.features || '[Danh sách tính năng]'}
+
+**Yêu cầu Output (Cấu trúc dự án & Code):**
+
+1.  **Project Structure (Tree View):**
+    - Vẽ cây thư mục tối ưu cho khả năng mở rộng (Scalability).
+    - Phân chia rõ ràng folder: \`components\`, \`hooks\`, \`services\`, \`pages\`, \`utils\`.
+
+2.  **Key Components Implementation:**
+    - Viết code cho **Main Layout** (Sidebar/Header).
+    - Viết code cho 1 **Feature Component** quan trọng nhất (dựa trên yêu cầu trên).
+    - Sử dụng **Tailwind CSS** để style trực tiếp (Utility-first).
+
+3.  **State Management & API Layer:**
+    - Đề xuất cách quản lý state (Zustand, Context API, hay Redux Toolkit?).
+    - Viết mẫu file \`services/api.js\` (hoặc .ts) sử dụng Axios/Fetch để xử lý request chuẩn (Interceptor, Error Handling).
+
+4.  **UI/UX Advice:**
+    - Đưa ra 3 lời khuyên để giao diện này thân thiện với người dùng (User-centric) dựa trên phong cách "${data.ui_style}".
+`
+  },
+  {
     id: "tech_code_translate",
     source: "system",
     category: "Coder & Tech",
@@ -620,6 +726,36 @@ ${data.process_desc || '[Mô tả]'}
 
 **Yêu cầu Output:**
 Chỉ trả về khối code Mermaid (bắt đầu bằng \`\`\`mermaid) hợp lệ. Đảm bảo logic luồng đi đúng hướng và có các chú thích (Label) rõ ràng trên các mũi tên.
+`
+  },
+  {
+    id: "tech_dummy_data",
+    source: "system",
+    category: "Coder & Tech",
+    iconName: "database",
+    title: "Dummy Data Generator",
+    desc: "Tạo dữ liệu giả (Mock Data) chuẩn xác về ngữ nghĩa để test App/DB.",
+    tags: ["Data Generation", "Testing", "JSON/SQL"],
+    tactic: "Sử dụng **Schema-Aware Generation**. Khác với các tool random string vô nghĩa, prompt này yêu cầu AI hiểu ngữ cảnh của trường dữ liệu (Context-aware). Ví dụ: 'Email' phải có định dạng email, 'Tên' phải giống tên người thật. Kết quả trả về dạng JSON hoặc SQL Insert.",
+    inputs: [
+      { id: "format", label: "Định dạng Output", placeholder: "JSON Array / SQL Insert / CSV", type: "text" },
+      { id: "quantity", label: "Số lượng bản ghi", placeholder: "10 users", type: "text" },
+      { id: "fields", label: "Mô tả các trường (Fields)", placeholder: "id (uuid), name (Vietnamese full name), email, role (Admin/User), status (Active/Inactive)", type: "textarea" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Senior Data Engineer.
+**Task:** Tạo bộ dữ liệu giả (Mock Data) chất lượng cao để phục vụ testing.
+
+**Yêu cầu:**
+- **Format:** ${data.format || 'JSON'}
+- **Số lượng:** ${data.quantity || '5'} bản ghi.
+- **Cấu trúc dữ liệu:**
+${data.fields || '[Fields]'}
+
+**Constraint (Ràng buộc):**
+- Dữ liệu phải có ý nghĩa thực tế (Realism), không dùng random string vô nghĩa (trừ ID).
+- Nếu là tên người Việt Nam, hãy dùng tên chuẩn tiếng Việt.
+- Trả về kết quả trong khối code block.
 `
   },
   {
@@ -808,13 +944,19 @@ ${data.dirty_code || '[Code cũ]'}
     tactic: "Kết hợp **SEO Optimization** và **Reader-First approach**. Prompt này yêu cầu AI chèn từ khóa một cách tự nhiên (tránh Keyword Stuffing) và cấu trúc bài viết bằng các thẻ Heading (H1, H2, H3) để Google bot dễ đọc.",
     inputs: [
       { id: "keyword", label: "Từ khóa chính (Main Keyword)", placeholder: "cách kiếm tiền online", type: "text" },
+      { id: "target_audience", label: "Chân dung người đọc (Persona)", placeholder: "Người mới bắt đầu, Gen Z, Chuyên gia...", type: "text" },
       { id: "tone", label: "Giọng văn (Tone)", placeholder: "Chuyên gia, Thân thiện, hoặc Hài hước", type: "text" },
       { id: "outline", label: "Dàn ý sơ bộ (Optional)", placeholder: "1. Giới thiệu, 2. Các cách MMO, 3. Lời khuyên...", type: "textarea" }
     ],
     generate: (data) => `
 **Role:** Bạn là chuyên gia SEO Content Marketing.
 **Task:** Viết một bài Blog Post dài, chuẩn SEO cho từ khóa: "${data.keyword || '[Keyword]'}".
+
+**Target Audience (Persona):** ${data.target_audience || 'Đại chúng'}
 **Tone:** ${data.tone || 'Chuyên nghiệp'}.
+
+**Yêu cầu Content:**
+Hãy điều chỉnh ngôn ngữ, ví dụ và phong cách viết để phù hợp hoàn toàn với **${data.target_audience || 'người đọc'}**. Nếu họ là người mới, hãy giải thích thuật ngữ đơn giản. Nếu là chuyên gia, hãy đi sâu vào kỹ thuật.
 
 **Yêu cầu SEO On-page:**
 1. **Tiêu đề (H1):** Phải chứa từ khóa và gây kích thích click (CTR).
@@ -828,6 +970,38 @@ ${data.outline ? `Dựa trên dàn ý sau: ${data.outline}` : 'Hãy tự đề x
 Hãy viết nội dung chi tiết, hữu ích, không viết chung chung.
 `
   },
+  {
+    id: "content_linkedin",
+    source: "system",
+    category: "Content & SEO",
+    iconName: "share-2",
+    title: "LinkedIn Viral Post",
+    desc: "Viết bài thương hiệu cá nhân (Personal Branding) trên LinkedIn thu hút tương tác.",
+    tags: ["LinkedIn", "Personal Branding", "Social Selling"],
+    tactic: "Sử dụng phong cách **Broetry** (Dòng ngắn, xuống dòng nhiều) - đặc sản của LinkedIn. Prompt tập trung vào cấu trúc: Hook gây sốc -> Câu chuyện cá nhân (Vulnerability) -> Bài học rút ra (Value) -> Call to Action.",
+    inputs: [
+      { id: "topic", label: "Chủ đề bài viết", placeholder: "Bài học sau khi bị sa thải, Cách quản lý team remote...", type: "text" },
+      { id: "story", label: "Câu chuyện/Bối cảnh (Tùy chọn)", placeholder: "Kể về lúc tôi thất bại khi khởi nghiệp lần đầu...", type: "textarea" },
+      { id: "cta", label: "Kêu gọi hành động (CTA)", placeholder: "Comment 'Yes' để nhận tài liệu", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là chuyên gia xây dựng thương hiệu cá nhân (Top Voice) trên LinkedIn.
+**Task:** Viết bài đăng LinkedIn (Post) về chủ đề: "${data.topic}".
+
+**Context/Story:**
+${data.story || '[Hãy tự sáng tạo một câu chuyện truyền cảm hứng liên quan đến chủ đề này]'}
+
+**Yêu cầu Format (LinkedIn Style):**
+1.  **The Hook:** Câu đầu tiên phải cực ngắn, gây tò mò hoặc tranh cãi nhẹ.
+2.  **Formatting:** Mỗi câu là một dòng. Sử dụng khoảng trắng nhiều để dễ đọc trên mobile.
+3.  **Content Flow:** Đi từ khó khăn (Struggle) -> Bước ngoặt (Turning Point) -> Bài học (Lesson).
+4.  **CTA:** ${data.cta || 'Hãy comment ý kiến của bạn bên dưới.'}
+
+**Tone:** Chuyên nghiệp nhưng chân thành (Authentic), truyền cảm hứng.
+`
+  },
+
+  // --- BUSINESS & SALES ---
   {
     id: "biz_cold_email",
     source: "system",
@@ -907,8 +1081,88 @@ Dựa trên bảng trên, hãy đề xuất các chiến lược lai ghép cụ 
 > **"Modern business infographic template showing SWOT analysis for '${data.subject}', divided into 4 colored quadrants: Blue (Strengths), Orange (Weaknesses), Green (Opportunities), Red (Threats). Professional data visualization style, clean vector icons, white background, --ar 16:9"**
 `
   },
+  {
+    id: "biz_data_viz",
+    source: "system",
+    category: "Business & Sales",
+    iconName: "pie-chart",
+    title: "Biến Số Liệu Thành Báo Cáo & Slide",
+    desc: "Phân tích dữ liệu thô, tạo code biểu đồ (Mermaid.js) và dàn ý slide thuyết trình.",
+    tags: ["Data Analysis", "Visualization", "Presentation"],
+    tactic: "Sử dụng kỹ thuật **Data Storytelling**. Thay vì chỉ liệt kê con số vô hồn, AI sẽ tìm ra câu chuyện đằng sau dữ liệu (Trend, Insight) và trực quan hóa nó bằng code biểu đồ **Mermaid.js** (có thể copy vào Notion/Obsidian) kèm theo dàn ý bài thuyết trình thuyết phục.",
+    inputs: [
+      { id: "raw_data", label: "Dữ liệu thô (Raw Data)", placeholder: "Paste dữ liệu Excel/CSV hoặc mô tả số liệu vào đây...", type: "textarea" },
+      { id: "context", label: "Bối cảnh / Mục tiêu", placeholder: "Báo cáo doanh thu Q3 cho sếp, Slide gọi vốn...", type: "text" },
+      { id: "chart_preference", label: "Loại biểu đồ mong muốn", placeholder: "Biểu đồ cột, Biểu đồ tròn, hoặc 'Tự động chọn'", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Senior Data Analyst & Presentation Expert.
+**Task:** Phân tích dữ liệu được cung cấp và chuyển hóa thành Báo cáo Insight & Dàn ý Slide thuyết trình.
 
-  // --- EXISTING TEMPLATES BELOW (Keep existing ones) ---
+**Context/Mục tiêu:** ${data.context || '[Mục tiêu báo cáo]'}
+**Yêu cầu Biểu đồ:** ${data.chart_preference || 'Tự động chọn loại phù hợp nhất'}
+
+**Raw Data:**
+\`\`\`
+${data.raw_data || '[Dữ liệu]'}
+\`\`\`
+
+**Yêu cầu Output (3 Phần):**
+
+**PHẦN 1: EXECUTIVE INSIGHTS (Báo cáo ngắn)**
+- Tìm ra 3 điểm nổi bật nhất (Key Findings) từ dữ liệu trên.
+- Giải thích *tại sao* con số đó quan trọng (The "So What?").
+
+**PHẦN 2: DATA VISUALIZATION (Mermaid.js Code)**
+Hãy viết code **Mermaid.js** để vẽ biểu đồ minh họa cho dữ liệu trên.
+*Lưu ý:* Chọn loại biểu đồ (Pie/Bar/Line/XY) phù hợp nhất để thể hiện sự so sánh hoặc xu hướng.
+\`\`\`mermaid
+...code here...
+\`\`\`
+
+**PHẦN 3: PRESENTATION OUTLINE (Dàn ý Slide)**
+Hãy tạo dàn ý cho 3-5 slide thuyết trình dựa trên insights trên:
+- **Slide 1: Title** (Tiêu đề thu hút + Subtitle).
+- **Slide 2: The Problem/Context** (Thực trạng từ dữ liệu).
+- **Slide 3: The Insight** (Điểm nhấn chính + Đề xuất biểu đồ minh họa).
+- **Slide 4: Recommendation** (Đề xuất hành động tiếp theo).
+`
+  },
+  {
+    id: "biz_job_desc",
+    source: "system",
+    category: "Business & Sales",
+    iconName: "briefcase",
+    title: "Tuyển Dụng & Job Description",
+    desc: "Viết bản mô tả công việc (JD) hấp dẫn, tập trung vào kết quả và văn hóa.",
+    tags: ["HR", "Recruitment", "Job Description"],
+    tactic: "Thay vì liệt kê đầu việc nhàm chán, prompt này sử dụng kỹ thuật **Role-Result Alignment**. Nó tập trung vào 'Kết quả kỳ vọng' (Outcomes) và 'Tại sao bạn sẽ yêu thích công việc này', giúp thu hút nhân tài thực sự chứ không chỉ là người xin việc.",
+    inputs: [
+      { id: "job_title", label: "Vị trí tuyển dụng", placeholder: "Senior React Developer", type: "text" },
+      { id: "responsibilities", label: "Trách nhiệm chính", placeholder: "Xây dựng giao diện, Tối ưu performance, Mentor junior", type: "textarea" },
+      { id: "culture", label: "Văn hóa công ty", placeholder: "Làm việc từ xa, Linh hoạt, Data-driven", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Chuyên gia Tuyển dụng (Recruitment Manager) và Employer Branding.
+**Task:** Viết một bản mô tả công việc (JD) cực kỳ hấp dẫn cho vị trí: "${data.job_title}".
+
+**Context:**
+- **Nhiệm vụ:** ${data.responsibilities || '[Trách nhiệm]'}
+- **Văn hóa:** ${data.culture || '[Văn hóa]'}
+
+**Cấu trúc JD (Performance-based):**
+1.  **The Mission (Sứ mệnh):** Tại sao vị trí này tồn tại và nó quan trọng thế nào với công ty?
+2.  **What You Will Achieve (Kết quả kỳ vọng):**
+    - *Trong 1 tháng đầu:* ...
+    - *Trong 3 tháng:* ...
+3.  **Why You'll Love It Here (Quyền lợi & Văn hóa):** Bán "ước mơ" và môi trường làm việc, không chỉ là lương.
+4.  **Who You Are (Chân dung ứng viên):** Mô tả tư duy và kỹ năng mềm, không chỉ là bằng cấp.
+
+**Tone:** Chuyên nghiệp, chào đón, thách thức (để lọc ứng viên giỏi).
+`
+  },
+
+  // --- CHATBOT & CS ---
   {
     id: "chatbot_training",
     source: "system",
@@ -943,6 +1197,36 @@ Format mẫu:
     "bot": "Dạ tiền nào của nấy bác ơi 🥺 Hàng bên em là bản Premium bảo hành 12 tháng, không phải hàng chợ đâu ạ. Em freeship bù nha? 🎁"
   }
 ]
+`
+  },
+  {
+    id: "cs_sop",
+    source: "system",
+    category: "Chatbot & CS",
+    iconName: "book-open",
+    title: "Quy Trình Xử Lý Khiếu Nại (SOP)",
+    desc: "Xây dựng quy trình chuẩn (SOP) từng bước cho nhân viên CSKH xử lý sự cố.",
+    tags: ["Customer Service", "SOP", "Crisis Management"],
+    tactic: "Sử dụng mô hình **L.A.T.T.E** (Listen, Acknowledge, Take action, Thank, Explain) của Starbucks. Prompt này giúp bạn chuẩn hóa quy trình xử lý khủng hoảng, đảm bảo mọi nhân viên đều xử lý chuyên nghiệp và giảm thiểu thiệt hại thương hiệu.",
+    inputs: [
+      { id: "issue", label: "Vấn đề khiếu nại thường gặp", placeholder: "Khách nhận hàng bị vỡ/hỏng, Giao hàng trễ", type: "text" },
+      { id: "policy", label: "Chính sách đền bù", placeholder: "Đổi mới 1-1 trong 7 ngày, Tặng voucher 50k", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Trưởng phòng Chăm sóc Khách hàng (CS Manager).
+**Task:** Xây dựng Quy trình vận hành tiêu chuẩn (SOP) để xử lý khiếu nại: "${data.issue}".
+
+**Chính sách công ty:** ${data.policy || '[Chính sách]'}
+
+**Yêu cầu SOP (Mô hình L.A.T.T.E):**
+Hãy viết kịch bản hướng dẫn nhân viên từng bước:
+1.  **Listen (Lắng nghe):** Cách đặt câu hỏi để khách xả cơn giận và thu thập thông tin.
+2.  **Acknowledge (Đồng cảm):** Mẫu câu xin lỗi chân thành (không văn mẫu).
+3.  **Take Action (Hành động):** Các phương án giải quyết dựa trên chính sách (Trao quyền cho nhân viên).
+4.  **Thank (Cảm ơn):** Cảm ơn vì khách đã phản hồi.
+5.  **Explain (Giải thích):** Giải thích ngắn gọn nguyên nhân (nếu cần) và cam kết không tái diễn.
+
+**Output:** Trình bày dạng Checklist hoặc Flowchart text để nhân viên dễ làm theo.
 `
   }
 ];

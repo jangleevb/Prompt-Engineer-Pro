@@ -36,7 +36,12 @@ import {
   HardDrive,
   Box,
   RefreshCw,
-  ScanSearch
+  ScanSearch,
+  PieChart,
+  Users,
+  Share2,
+  Briefcase,
+  BookOpen
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -79,7 +84,12 @@ const IconMap: Record<string, React.FC<{ className?: string }>> = {
   "globe": Globe,
   "shuffle": Shuffle,
   "lock": Lock,
-  "scan-search": ScanSearch
+  "scan-search": ScanSearch,
+  "pie-chart": PieChart,
+  "users": Users,
+  "share-2": Share2,
+  "briefcase": Briefcase,
+  "book-open": BookOpen
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ 
