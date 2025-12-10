@@ -426,7 +426,7 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col md:flex-row overflow-hidden bg-slate-950 text-slate-200">
+    <div className="h-screen flex flex-col md:flex-row overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-200 selection:bg-sky-500/30">
       
       {/* Sidebar */}
       <Sidebar 
@@ -446,33 +446,33 @@ const App: React.FC = () => {
       />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-hidden relative">
+      <main className="flex-1 flex flex-col min-w-0 bg-transparent overflow-hidden relative shadow-inner">
         
         {/* Main Header (Desktop & Mobile) */}
-        <header className="h-16 border-b border-slate-800 bg-slate-900/80 backdrop-blur flex items-center justify-between px-4 md:px-8 z-10 shrink-0">
+        <header className="h-16 border-b border-white/5 bg-slate-900/60 backdrop-blur-md flex items-center justify-between px-4 md:px-8 z-10 shrink-0 shadow-sm">
             <div className="flex items-center gap-3">
                  {/* Mobile Menu Toggle */}
-                <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-slate-400 p-1 hover:text-white transition-colors">
-                    <Menu className="w-6 h-6" />
+                <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-slate-400 p-2 hover:text-white hover:bg-white/10 rounded-full transition-all">
+                    <Menu className="w-5 h-5" />
                 </button>
                 <div className="flex items-center gap-3">
-                    <h1 className="font-bold text-white text-lg">
-                        {selectedTemplate ? selectedTemplate.title : "Prompt Engineer Pro"}
+                    <h1 className="font-bold text-white text-lg tracking-tight truncate max-w-[200px] md:max-w-md">
+                        {selectedTemplate ? selectedTemplate.title : "Trang Chủ"}
                     </h1>
                     
                     {/* Action Buttons for Custom Templates */}
                     {selectedTemplate && selectedTemplate.source === 'local' && (
-                        <div className="flex items-center gap-1 ml-2 border-l border-slate-700 pl-3">
+                        <div className="flex items-center gap-1 ml-2 border-l border-white/10 pl-3">
                             <button 
                                 onClick={handleEditCurrentTemplate}
-                                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-colors"
+                                className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded transition-colors"
                                 title="Chỉnh sửa Template này"
                             >
                                 <Pencil className="w-4 h-4" />
                             </button>
                             <button 
                                 onClick={handleDeleteCurrentTemplate}
-                                className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded transition-colors"
+                                className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-white/10 rounded transition-colors"
                                 title="Xóa Template này"
                             >
                                 <Trash2 className="w-4 h-4" />
@@ -485,66 +485,73 @@ const App: React.FC = () => {
             {/* Right Action: Login / Key */}
             <button 
                 onClick={() => setIsLoginModalOpen(true)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full border bg-slate-800 border-slate-700 hover:border-slate-600 hover:bg-slate-700 transition-all text-xs md:text-sm"
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all text-xs md:text-sm shadow-lg ${
+                    user 
+                    ? 'bg-slate-800/80 border-slate-700 hover:border-slate-500' 
+                    : 'bg-gradient-to-r from-indigo-600 to-sky-600 border-transparent hover:brightness-110 text-white'
+                }`}
             >
                 {user ? (
-                   <img src={user.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'} alt="User" className="w-5 h-5 rounded-full border border-slate-500" />
+                   <img src={user.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'} alt="User" className="w-6 h-6 rounded-full border border-slate-500 shadow-sm" />
                 ) : (
-                   <UserCircle className="w-5 h-5 text-slate-400" />
+                   <UserCircle className="w-5 h-5" />
                 )}
                 
-                <div className="flex flex-col items-start leading-none">
-                    <span className="font-bold text-slate-200">
-                        {user ? user.name : "Đăng nhập / Key"}
+                <div className="flex flex-col items-start leading-none gap-0.5">
+                    <span className={`font-bold ${user ? 'text-slate-200' : 'text-white'}`}>
+                        {user ? user.name : "Đăng nhập"}
                     </span>
-                    {apiKey && (
-                        <span className="text-[10px] text-green-400 font-mono flex items-center gap-1 mt-0.5">
-                            <Key className="w-2.5 h-2.5" /> API KEY: ACTIVE
+                    {apiKey && user && (
+                        <span className="text-[9px] text-green-400 font-mono flex items-center gap-1">
+                            <Key className="w-2 h-2" /> KEY LINKED
                         </span>
                     )}
                 </div>
             </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 scroll-smooth">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 scroll-smooth custom-scrollbar">
             
           {/* Left Column: Config */}
-          <div className="space-y-6">
+          <div className="space-y-6 animate-in slide-in-from-left-4 duration-500">
             <div className="md:hidden">
-              <h2 className="text-2xl font-bold text-white mb-2">
-                {selectedTemplate ? selectedTemplate.title : "Chào mừng"}
+              <h2 className="text-2xl font-bold text-white mb-2 leading-tight">
+                {selectedTemplate ? selectedTemplate.title : "Chào mừng trở lại"}
               </h2>
-              <p className="text-slate-400 text-sm mb-4">
-                {selectedTemplate ? selectedTemplate.desc : "Hãy chọn một template để bắt đầu."}
+              <p className="text-slate-400 text-sm mb-4 leading-relaxed">
+                {selectedTemplate ? selectedTemplate.desc : "Hãy chọn một template từ menu bên trái để bắt đầu tạo nội dung."}
               </p>
             </div>
             
-            {/* Badges (Only show on desktop here, mobile shows above if needed but kept simple) */}
+            {/* Badges */}
             {selectedTemplate && (
               <div className="flex flex-wrap gap-2 mb-2">
-                  <span className={`px-2 py-1 rounded border text-xs font-mono uppercase ${
-                      selectedTemplate.source === 'local' ? 'bg-indigo-900/50 border-indigo-700 text-indigo-300' :
-                      selectedTemplate.source === 'online' ? 'bg-green-900/50 border-green-700 text-green-300' :
-                      'bg-slate-800 border-slate-700 text-slate-400'
+                  <span className={`px-2 py-1 rounded-md border text-[10px] font-bold uppercase tracking-wider ${
+                      selectedTemplate.source === 'local' ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400' :
+                      selectedTemplate.source === 'online' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' :
+                      'bg-slate-700/30 border-slate-600/30 text-slate-400'
                   }`}>
                     {selectedTemplate.source === 'local' ? 'Personal' : 
                      selectedTemplate.source === 'online' ? 'Community' : 'System'}
                   </span>
                   {selectedTemplate.tags.map(tag => (
-                    <span key={tag} className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-xs text-sky-400 font-mono">
-                      {tag}
+                    <span key={tag} className="px-2 py-1 rounded-md bg-slate-800/50 border border-slate-700/50 text-[10px] text-sky-400 font-mono">
+                      #{tag}
                     </span>
                   ))}
               </div>
             )}
 
             {/* Form Inputs */}
-            <InputForm 
-              template={selectedTemplate} 
-              formData={formData} 
-              onChange={handleInputChange} 
-              apiKey={apiKey}
-            />
+            <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-sky-500/5 to-indigo-500/5 rounded-2xl blur-xl -z-10"></div>
+                <InputForm 
+                template={selectedTemplate} 
+                formData={formData} 
+                onChange={handleInputChange} 
+                apiKey={apiKey}
+                />
+            </div>
 
             {/* Explain Box */}
             {selectedTemplate && (
@@ -553,13 +560,15 @@ const App: React.FC = () => {
           </div>
 
           {/* Right Column: Result */}
-          <OutputDisplay 
-            promptText={generatedPrompt} 
-            onSave={handleSavePrompt}
-            title={selectedTemplate?.title}
-            attachedImages={attachedImages}
-            apiKey={apiKey}
-          />
+          <div className="h-full flex flex-col animate-in slide-in-from-right-4 duration-500 delay-100">
+             <OutputDisplay 
+                promptText={generatedPrompt} 
+                onSave={handleSavePrompt}
+                title={selectedTemplate?.title}
+                attachedImages={attachedImages}
+                apiKey={apiKey}
+             />
+          </div>
 
         </div>
       </main>

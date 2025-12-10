@@ -1,6 +1,183 @@
 import { Template } from './types';
 
 export const TEMPLATES: Template[] = [
+  // --- FINANCE & TRADING (NEW) ---
+  {
+    id: "fin_chart_analysis",
+    source: "system",
+    category: "Finance & Trading",
+    iconName: "candlestick-chart",
+    title: "Phân Tích Kỹ Thuật (Chart Master)",
+    desc: "Upload ảnh biểu đồ (Crypto/Forex/Stock) để AI phân tích xu hướng, mô hình nến và điểm vào lệnh.",
+    tags: ["Technical Analysis", "Multimodal", "Trading"],
+    tactic: "Sử dụng khả năng **Multimodal Vision** của Gemini. AI sẽ đóng vai một Senior Technical Analyst (CMT) để 'nhìn' biểu đồ, xác định các mức Hỗ trợ/Kháng cự (Support/Resistance), Indicator (RSI, MACD) và đưa ra nhận định Buy/Sell khách quan.",
+    inputs: [
+      { id: "chart_image", label: "Upload ảnh biểu đồ", placeholder: "Chụp ảnh màn hình TradingView...", type: "image" },
+      { id: "pair", label: "Cặp giao dịch", placeholder: "BTC/USDT, XAU/USD, VNI...", type: "text" },
+      { id: "timeframe", label: "Khung thời gian", placeholder: "H4, D1, W1", type: "text" },
+      { id: "style", label: "Trường phái (Optional)", placeholder: "SMC, Price Action, Wyckoff, Elliott Wave", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Senior Technical Analyst (Chartered Market Technician - CMT) với 15 năm kinh nghiệm giao dịch ${data.pair || 'tài chính'}.
+**Task:** Phân tích biểu đồ kỹ thuật được cung cấp.
+
+**Context:**
+- **Symbol:** ${data.pair || 'Không xác định'}
+- **Timeframe:** ${data.timeframe || 'Không xác định'}
+- **Trading Style:** ${data.style || 'Price Action kết hợp đa chỉ báo'}
+
+**Yêu cầu phân tích (Dựa trên hình ảnh):**
+1.  **Trend Identification:** Xác định xu hướng chính (Uptrend, Downtrend, hay Sideway)? Cấu trúc thị trường (HH, HL, LL, LH) đang thế nào?
+2.  **Key Levels:** Chỉ ra các vùng Hỗ trợ (Support) và Kháng cự (Resistance) quan trọng nhất trên hình.
+3.  **Patterns & Candles:** Tìm kiếm các mô hình giá (Vai đầu vai, Cờ, Tam giác...) hoặc mô hình nến đảo chiều (Pinbar, Engulfing).
+4.  **Indicators (Nếu thấy):** Đọc tín hiệu từ các chỉ báo (RSI phân kỳ? MACD cắt nhau? Bollinger Bands bó hẹp?).
+5.  **Trading Plan:**
+    - **Bias:** Long (Buy) hay Short (Sell)?
+    - **Entry Zone:** Vùng vào lệnh hợp lý.
+    - **Stop Loss:** Điểm cắt lỗ (Invalidation point).
+    - **Take Profit:** Các mốc chốt lời tiềm năng.
+
+**Disclaimer:** Hãy thêm cảnh báo rủi ro ở cuối. Đây chỉ là phân tích tham khảo, không phải lời khuyên đầu tư tài chính.
+`
+  },
+  {
+    id: "fin_pine_script",
+    source: "system",
+    category: "Finance & Trading",
+    iconName: "code-2",
+    title: "TradingView Pine Script Coder",
+    desc: "Tạo code chỉ báo (Indicator) hoặc Bot giao dịch tự động (Strategy) cho TradingView.",
+    tags: ["Coding", "Algo Trading", "TradingView"],
+    tactic: "Áp dụng tư duy **Algorithmic Logic**. Bạn mô tả ý tưởng giao dịch bằng lời (ví dụ: 'Mua khi MA cắt lên'), AI sẽ chuyển nó thành code Pine Script v5 chuẩn xác, sẵn sàng để backtest.",
+    inputs: [
+      { id: "script_type", label: "Loại Script", placeholder: "Strategy (có Backtest) / Indicator (Chỉ báo)", type: "text" },
+      { id: "logic", label: "Logic vào/ra lệnh", placeholder: "Buy khi RSI < 30 và nến đóng cửa trên EMA 200. Sell khi RSI > 70...", type: "textarea" },
+      { id: "extra_features", label: "Tính năng thêm", placeholder: "Vẽ TP/SL lên chart, Alert khi có tín hiệu, Trailing Stop...", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Expert Pine Script Developer (TradingView).
+**Task:** Viết code Pine Script **Version 5** cho yêu cầu dưới đây.
+
+**Loại:** ${data.script_type || 'Strategy'}
+**Logic Chiến thuật:**
+${data.logic || '[Logic]'}
+
+**Yêu cầu tính năng:**
+${data.extra_features || 'Cơ bản'}
+
+**Yêu cầu Output:**
+1.  Code phải compile không lỗi trên TradingView.
+2.  Sử dụng \`strategy()\` nếu là Strategy, \`indicator()\` nếu là Indicator.
+3.  Comment giải thích từng khối lệnh.
+4.  Nếu là Strategy, hãy thêm input để user tùy chỉnh được các thông số (Period, Source, Stop Loss %).
+
+\`\`\`pinescript
+// Code bắt đầu từ đây
+//@version=5
+...
+\`\`\`
+`
+  },
+  {
+    id: "fin_tokenomics",
+    source: "system",
+    category: "Finance & Trading",
+    iconName: "coins",
+    title: "Crypto Tokenomics Auditor",
+    desc: "Phân tích Tokenomics của dự án Crypto để tìm cơ hội đầu tư hoặc dấu hiệu lừa đảo.",
+    tags: ["Crypto", "Fundamental Analysis", "Venture Capital"],
+    tactic: "Đóng vai **VC Researcher**. Tokenomics quyết định sự sống còn của dự án. Prompt này yêu cầu AI soi kỹ vào Lịch trả coin (Vesting), Phân bổ (Allocation) và Lạm phát để đánh giá áp lực bán trong tương lai.",
+    inputs: [
+      { id: "project_name", label: "Tên dự án/Token", placeholder: "Optimism (OP), Arbitrum (ARB)...", type: "text" },
+      { id: "data_text", label: "Dữ liệu Tokenomics (Paste từ Whitepaper/Docs)", placeholder: "Total Supply: 1B, Team: 20%, Investors: 15% (Lock 1 year)...", type: "textarea" },
+      { id: "fdv_mcap", label: "Market Cap / FDV hiện tại (Optional)", placeholder: "MCap: 200M, FDV: 2B", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Chuyên gia Nghiên cứu Đầu tư Ventures (VC Researcher) chuyên về Crypto Assets.
+**Task:** Audit (Kiểm toán) Tokenomics của dự án: "${data.project_name}".
+
+**Dữ liệu đầu vào:**
+${data.data_text || '[Dữ liệu Tokenomics]'}
+${data.fdv_mcap ? `- **Valuation:** ${data.fdv_mcap}` : ''}
+
+**Yêu cầu phân tích sâu:**
+1.  **Allocation Risk:** Tỷ lệ phân bổ cho Team và Quỹ đầu tư (Insiders) có quá cao không (>40% là báo động)? Cộng đồng nắm bao nhiêu?
+2.  **Vesting Schedule (Lịch trả coin):**
+    - Khi nào có đợt mở khóa lớn (Cliff)?
+    - Áp lực bán (Sell Pressure) trong 12 tháng tới như thế nào?
+3.  **Inflation Model:** Token này là lạm phát hay giảm phát? Use case của token là gì để giữ giá?
+4.  **Red Flags:** Tìm các dấu hiệu nguy hiểm (ví dụ: Team nắm quá nhiều, Treasury không rõ ràng).
+
+**Kết luận:** Đánh giá điểm Tokenomics trên thang 10. Dự án này thích hợp để "Hold dài hạn" hay chỉ "Trade lướt sóng"?
+`
+  },
+  {
+    id: "fin_risk_management",
+    source: "system",
+    category: "Finance & Trading",
+    iconName: "calculator",
+    title: "Tính Volume & Quản Lý Rủi Ro",
+    desc: "Tính toán khối lượng vào lệnh (Position Size) dựa trên số vốn và mức dừng lỗ.",
+    tags: ["Risk Management", "Math", "Trading Discipline"],
+    tactic: "Sử dụng **Mathematical Logic**. Trader chuyên nghiệp không hỏi 'Vào bao nhiêu tiền?', họ hỏi 'Chấp nhận mất bao nhiêu?'. Prompt này giúp bạn tính toán con số chính xác để không bao giờ cháy tài khoản.",
+    inputs: [
+      { id: "capital", label: "Tổng vốn tài khoản ($)", placeholder: "10000", type: "text" },
+      { id: "risk_per_trade", label: "Rủi ro mỗi lệnh (%)", placeholder: "1% hoặc 2%", type: "text" },
+      { id: "entry_price", label: "Giá vào lệnh (Entry)", placeholder: "2000 (Vàng) hoặc 50000 (BTC)", type: "text" },
+      { id: "sl_price", label: "Giá cắt lỗ (Stop Loss)", placeholder: "1990 hoặc 49000", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Risk Manager của một quỹ phòng hộ (Hedge Fund).
+**Task:** Tính toán khối lượng giao dịch (Position Sizing) để bảo toàn vốn.
+
+**Thông số:**
+- **Account Balance:** $${data.capital || '10000'}
+- **Risk per Trade:** ${data.risk_per_trade || '1'}%
+- **Entry Price:** ${data.entry_price || '0'}
+- **Stop Loss Price:** ${data.sl_price || '0'}
+
+**Yêu cầu tính toán & Báo cáo:**
+
+1.  **Risk Amount ($):** Số tiền tối đa được phép mất cho lệnh này là bao nhiêu USD?
+2.  **Stop Loss Distance:** Khoảng cách giá từ Entry đến SL (theo giá và theo %).
+3.  **Position Size (Volume):**
+    - Tôi nên mua bao nhiêu đơn vị tài sản (Units/Contracts/Lots)?
+    - *Lưu ý:* Nếu là Crypto, tính số lượng Coin. Nếu là Forex, tính số Lot chuẩn (Giả định 1 Lot = 100,000 unit).
+4.  **Leverage Suggestion (Gợi ý đòn bẩy):** Nếu tôi muốn dùng số vốn ký quỹ (Margin) nhỏ hơn 10% tài khoản, tôi nên dùng đòn bẩy tối đa là bao nhiêu?
+
+**Lời khuyên:** Đưa ra 1 quy tắc tâm lý giao dịch ngắn gọn liên quan đến lệnh này.
+`
+  },
+  {
+    id: "fin_sentiment_news",
+    source: "system",
+    category: "Finance & Trading",
+    iconName: "newspaper",
+    title: "Phân Tích Tâm Lý Tin Tức (Sentiment)",
+    desc: "Đánh giá tác động của tin tức vĩ mô (Fed, CPI, War) đến thị trường.",
+    tags: ["Macro Economics", "Sentiment Analysis", "News"],
+    tactic: "Sử dụng **Sentiment Analysis**. Thị trường chạy theo tin tức. Bạn copy một bản tin, bài báo hoặc thông báo từ Fed, AI sẽ phân tích xem tin đó là 'Hawkish' (Diều hâu - Tốt cho USD/Bad cho Stock) hay 'Dovish' (Bồ câu) và dự báo phản ứng của đám đông.",
+    inputs: [
+      { id: "news_content", label: "Nội dung tin tức / Bản tin", placeholder: "Fed quyết định giữ nguyên lãi suất nhưng phát tín hiệu sẽ tăng vào cuối năm...", type: "textarea" },
+      { id: "asset_class", label: "Tài sản quan tâm", placeholder: "Vàng (XAU), Crypto, Chứng khoán Mỹ (US500)", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Chuyên gia Phân tích Vĩ mô (Macro Economist).
+**Task:** Đánh giá tác động của tin tức dưới đây đối với thị trường: ${data.asset_class || 'Tài chính toàn cầu'}.
+
+**News/Event:**
+"${data.news_content || '[Nội dung tin]'}"
+
+**Yêu cầu phân tích:**
+1.  **Sentiment Score:** Đánh giá tin này là Bullish (Tích cực), Bearish (Tiêu cực) hay Neutral (Trung lập) trên thang điểm -10 đến +10.
+2.  **Key Takeaways:** Tóm tắt 3 điểm chính tác động đến dòng tiền.
+3.  **Market Reaction Prediction:**
+    - Ngắn hạn (24h tới): Giá có thể biến động thế nào (Giật râu, Panic sell, FOMO)?
+    - Dài hạn: Xu hướng vĩ mô có thay đổi không?
+4.  **Action Plan:** Trader nên làm gì? (Đứng ngoài quan sát, Canh Buy Dip, hay Short Sell?)
+`
+  },
+
   // --- MMO & ADS ---
   {
     id: "mmo_roi",
