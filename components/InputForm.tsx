@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Template, InputConfig } from '../types';
-import { ArrowLeft, Upload, X, Image as ImageIcon, Wand2, Loader2, FileCode } from 'lucide-react';
+import { ArrowLeft, Upload, X, Image as ImageIcon, Wand2, Loader2, FileCode, ChevronDown } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 
 interface InputFormProps {
@@ -119,7 +119,7 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange, api
               </label>
 
               {/* Magic Fill Button - Only for text/textarea */}
-              {input.type !== 'image' && input.type !== 'file' && (
+              {input.type !== 'image' && input.type !== 'file' && input.type !== 'select' && (
                   <button
                     onClick={() => handleMagicFill(input)}
                     disabled={fillingId === input.id}
@@ -144,6 +144,20 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange, api
               value={formData[input.id] || ''}
               onChange={(e) => onChange(input.id, e.target.value)}
             />
+          ) : input.type === 'select' ? (
+             <div className="relative">
+                <select
+                  className="w-full p-3 pr-10 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-sm appearance-none focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
+                  value={formData[input.id] || ''}
+                  onChange={(e) => onChange(input.id, e.target.value)}
+                >
+                    <option value="" disabled>{input.placeholder || 'Chọn một tùy chọn...'}</option>
+                    {input.options?.map((opt, idx) => (
+                        <option key={idx} value={opt.value}>{opt.label}</option>
+                    ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-slate-500 pointer-events-none" />
+             </div>
           ) : input.type === 'image' ? (
             <div className="mt-1">
               {formData[input.id] ? (

@@ -2,11 +2,17 @@ import { LucideIcon } from 'lucide-react';
 
 export type TemplateSource = 'system' | 'local' | 'online';
 
+export interface SelectOption {
+  label: string;
+  value: string;
+}
+
 export interface InputConfig {
   id: string;
   label: string;
   placeholder: string;
-  type: 'text' | 'textarea' | 'image' | 'file';
+  type: 'text' | 'textarea' | 'image' | 'file' | 'select';
+  options?: SelectOption[]; // For select type
 }
 
 export interface Template {

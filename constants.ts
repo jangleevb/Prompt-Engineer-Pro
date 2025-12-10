@@ -1,6 +1,190 @@
 import { Template } from './types';
 
 export const TEMPLATES: Template[] = [
+  // --- SOCIAL SELLING & BUILDING (NEW) ---
+  {
+    id: "social_tiktok_build",
+    source: "system",
+    category: "Social Selling",
+    iconName: "smartphone",
+    title: "Xây Kênh TikTok Triệu View",
+    desc: "Lập lộ trình 30 ngày xây kênh TikTok từ con số 0 theo chiến thuật cụ thể.",
+    tags: ["TikTok", "Content Plan", "Viral"],
+    tactic: "Sử dụng **Strategic Content Planning**. Thay vì làm video ngẫu hứng, bạn chọn một 'Chiến thuật' (Hài hước, Chuyên gia, Drama...). AI sẽ thiết kế nội dung nhất quán với chiến thuật đó để thu hút đúng tệp Follower mục tiêu.",
+    inputs: [
+      { id: "niche", label: "Ngách (Niche)", placeholder: "Thời trang công sở, Đồ gia dụng thông minh...", type: "text" },
+      { id: "target_audience", label: "Khách hàng mục tiêu", placeholder: "Nữ 25-35 tuổi, dân văn phòng", type: "text" },
+      { 
+        id: "tactic", 
+        label: "Chiến thuật kênh (Tactic)", 
+        type: "select",
+        options: [
+            { label: "Giải trí/Hài hước (Viral Entertainment)", value: "Hài hước, skit ngắn, tình huống đời thường gây cười" },
+            { label: "Chuyên gia/Giáo dục (Edu-Tok)", value: "Chia sẻ kiến thức, Tips & Tricks, How-to hướng dẫn" },
+            { label: "Review chân thực (Authentic Review)", value: "Review thẳng thắn, test sản phẩm cực đoan, so sánh" },
+            { label: "Kể chuyện (Storytelling/Drama)", value: "Kể chuyện drama, tâm sự, daily vlog cảm xúc" },
+            { label: "Biến hình/Thẩm mỹ (Visual)", value: "Biến hình, show ảnh đẹp, nhạc trend, mãn nhãn" }
+        ],
+        placeholder: "Chọn chiến thuật chủ đạo..." 
+      }
+    ],
+    generate: (data) => `
+**Role:** Bạn là chuyên gia xây dựng kênh TikTok (TikTok Strategist) và Đạo diễn nội dung.
+**Task:** Lập kế hoạch nội dung 30 ngày để xây dựng kênh TikTok từ con số 0.
+
+**Thông tin kênh:**
+- **Ngách (Niche):** ${data.niche || 'Chưa xác định'}
+- **Target Audience:** ${data.target_audience || 'Đại chúng'}
+- **Chiến thuật chủ đạo (Key Tactic):** ${data.tactic || 'Hài hước'}
+
+**Yêu cầu đầu ra:**
+
+1.  **Concept Định vị (Channel Identity):**
+    - Bio kênh nên viết gì?
+    - Phong cách quay dựng (Visual style) và Nhạc nền chủ đạo (Vibe) nên như thế nào để phù hợp với chiến thuật "**${data.tactic}**"?
+
+2.  **3 Content Pillars (Trụ cột nội dung):** Xác định 3 tuyến nội dung chính để xoay vòng.
+
+3.  **Kế hoạch 4 tuần (Weekly Plan):**
+    - **Tuần 1 (Làm quen):** 3 ý tưởng video để thuật toán nhận diện tệp.
+    - **Tuần 2 (Tăng tốc):** 3 ý tưởng video dễ viral (bắt trend).
+    - **Tuần 3 (Chuyển đổi):** 3 ý tưởng video bán hàng khéo léo (Soft sell).
+    - **Tuần 4 (Khẳng định):** 3 ý tưởng video định vị thương hiệu cá nhân.
+
+*Lưu ý:* Với mỗi ý tưởng video, hãy mô tả ngắn gọn: "Hook" (3 giây đầu) là gì?
+`
+  },
+  {
+    id: "social_zalo_fb_profile",
+    source: "system",
+    category: "Social Selling",
+    iconName: "share-2",
+    title: "Xây Profile Bán Hàng (Zalo/FB)",
+    desc: "Tạo nội dung xây dựng thương hiệu cá nhân trên Zalo/Facebook để bán hàng uy tín.",
+    tags: ["Personal Branding", "Zalo Marketing", "Facebook Profile"],
+    tactic: "Sử dụng mô hình **Trust Building**. Trên Zalo/FB cá nhân, người ta mua hàng vì 'tin người bán'. Prompt này giúp bạn tạo ra chuỗi bài đăng xen kẽ giữa Cuộc sống - Chia sẻ giá trị - Bán hàng, giúp bạn không bị biến thành 'spam machine'.",
+    inputs: [
+      { id: "product", label: "Sản phẩm kinh doanh", placeholder: "Bất động sản, Bảo hiểm, Thực phẩm chức năng...", type: "text" },
+      { id: "personality", label: "Tính cách muốn thể hiện", placeholder: "Tận tâm, Thành đạt, Vui vẻ, Giản dị...", type: "text" },
+      { 
+        id: "post_type", 
+        label: "Loại bài đăng (Tactic)", 
+        type: "select",
+        options: [
+            { label: "Chia sẻ giá trị (Value Post)", value: "Bài viết dài chia sẻ kiến thức, quan điểm chuyên môn" },
+            { label: "Feedback/Kết quả (Social Proof)", value: "Khoe đơn hàng đi, feedback khách, tiền về tài khoản" },
+            { label: "Lifestyle (Cuộc sống cá nhân)", value: "Ảnh đi chơi, gia đình, cafe (để tăng tương tác thật)" },
+            { label: "Bán hàng trực diện (Sales Post)", value: "Bài chào hàng, ưu đãi, kêu gọi mua ngay" }
+        ],
+        placeholder: "Chọn loại bài cần viết..."
+      }
+    ],
+    generate: (data) => `
+**Role:** Bạn là chuyên gia tư vấn Thương hiệu cá nhân (Personal Branding Coach).
+**Task:** Viết bài đăng Facebook/Zalo cá nhân để bán: "${data.product}".
+
+**Context:**
+- **Tính cách thương hiệu:** ${data.personality || 'Uy tín'}
+- **Mục tiêu bài viết (Loại bài):** ${data.post_type || 'Chia sẻ giá trị'}
+
+**Yêu cầu Content:**
+Dựa trên loại bài "**${data.post_type}**", hãy viết 1 status (caption) hoàn chỉnh.
+1.  **Văn phong:** Phải thể hiện được tính cách "${data.personality}". Không được giống văn mẫu quảng cáo.
+2.  **Cấu trúc:**
+    - **Headline:** Giật tít nhẹ nhàng hoặc câu hỏi gợi mở.
+    - **Body:** Kể chuyện hoặc chia sẻ quan điểm.
+    - **CTA:** Kêu gọi hành động phù hợp (Comment, Inbox, hoặc chỉ là thả tim).
+3.  **Hình ảnh gợi ý:** Nên đăng kèm ảnh gì để bài này nhiều like?
+
+*Mẹo:* Nếu là bài bán hàng, hãy viết sao cho người đọc cảm thấy như đang được giúp đỡ, chứ không phải bị móc túi.
+`
+  },
+  {
+    id: "social_livestream_script",
+    source: "system",
+    category: "Social Selling",
+    iconName: "megaphone",
+    title: "Kịch Bản Livestream Chốt Đơn",
+    desc: "Kịch bản livestream chi tiết từng phút cho TikTok/Shopee/Facebook.",
+    tags: ["Livestream", "Script", "Sales"],
+    tactic: "Sử dụng chiến thuật **Energy Wave** (Sóng năng lượng). Một buổi live cần có lúc cao trào (Deal sốc), lúc trầm lắng (Tâm sự), lúc sôi động (Minigame). AI sẽ sắp xếp timeline hợp lý để giữ chân người xem (Retention).",
+    inputs: [
+      { id: "products", label: "Các sản phẩm sẽ Live", placeholder: "Son kem lì, Phấn nước, Mascara...", type: "textarea" },
+      { id: "deal", label: "Deal sốc / Quà tặng", placeholder: "Mua 1 tặng 1, Flash sale 1k", type: "text" },
+      { 
+        id: "style", 
+        label: "Phong cách Live (Tactic)", 
+        type: "select",
+        options: [
+            { label: "Năng lượng cao/Hô hào (Energy)", value: "Hét to, dồn dập, tạo áp lực thời gian, chốt đơn nhanh" },
+            { label: "Thủ thỉ tâm tình (Chill)", value: "Nhẹ nhàng, tâm sự, tư vấn kỹ, nhạc chill" },
+            { label: "Test cực đoan (Challenge)", value: "Test độ bền, chống nước trực tiếp trên live" },
+            { label: "Đấu giá/Game show", value: "Tổ chức chơi game liên tục, tặng quà là chính" }
+        ],
+        placeholder: "Chọn phong cách live..."
+      }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Đạo diễn Livestream nghìn đơn.
+**Task:** Viết kịch bản khung (Run-down) cho buổi Livestream kéo dài 60 phút.
+
+**Sản phẩm:** ${data.products || 'Đa dạng'}
+**Deal chính:** ${data.deal || 'Freeship'}
+**Phong cách:** ${data.style || 'Năng lượng cao'}
+
+**Yêu cầu Kịch bản (Timeline):**
+Hãy chia nhỏ kịch bản thành các mốc thời gian:
+1.  **Warm-up (0-10p):** Làm sao để kéo mắt xem? Chơi minigame gì đầu giờ? Câu chào hỏi giữ chân?
+2.  **Product Showcase (10-40p):** Giới thiệu sản phẩm chủ đạo. 
+    - *Key speech:* Nói câu gì để kích thích chốt đơn theo phong cách "${data.style}"?
+    - *Ghim deal:* Khi nào thì tung Deal sốc?
+3.  **Tương tác/Giải đáp (40-50p):** Cách xử lý comment, trả lời thắc mắc.
+4.  **Closing/Flash Sale cuối (50-60p):** Cú hích cuối cùng để xả hàng trước khi tắt live.
+
+**Mẫu câu chốt đơn:** Viết sẵn 5 câu kêu gọi hành động (Call to Action) cực gắt phù hợp với phong cách đã chọn.
+`
+  },
+  {
+    id: "social_youtube_shorts",
+    source: "system",
+    category: "Social Selling",
+    iconName: "video",
+    title: "YouTube Shorts & Long Strategy",
+    desc: "Chiến lược biến video dài thành video ngắn (Shorts) để kéo sub.",
+    tags: ["YouTube", "Content Repurposing", "Shorts"],
+    tactic: "Chiến thuật **Content Recycling** (Tái chế nội dung). Làm video YouTube dài rất cực. Prompt này giúp bạn bóc tách (Extract) các ý hay nhất từ một chủ đề lớn để làm thành 5-10 video Shorts, giúp kênh luôn có video đăng mỗi ngày.",
+    inputs: [
+      { id: "long_topic", label: "Chủ đề Video dài (Gốc)", placeholder: "Hướng dẫn tự học IELTS từ 0 đến 6.5", type: "text" },
+      { 
+        id: "hook_style", 
+        label: "Kiểu mở đầu Shorts (Tactic)", 
+        type: "select",
+        options: [
+            { label: "Sự thật gây sốc (Shocking Fact)", value: "Bắt đầu bằng một con số hoặc sự thật ít người biết" },
+            { label: "Phủ định sai lầm (Debunk Myth)", value: "Dừng lại! Bạn đang làm sai..." },
+            { label: "Kết quả trước (Result First)", value: "Show kết quả mỹ mãn trước, sau đó chỉ cách làm" },
+            { label: "Câu hỏi nhức nhối (Pain Question)", value: "Bạn có đang mệt mỏi vì...?" }
+        ],
+        placeholder: "Chọn kiểu Hook..."
+      }
+    ],
+    generate: (data) => `
+**Role:** Bạn là chuyên gia phát triển kênh YouTube.
+**Task:** Lên kế hoạch tái chế nội dung từ chủ đề gốc: "${data.long_topic}" thành các video YouTube Shorts.
+
+**Chiến thuật Hook:** ${data.hook_style}
+
+**Yêu cầu:**
+Hãy đề xuất **5 Ý tưởng Shorts** cắt ra từ chủ đề lớn trên. Với mỗi ý tưởng, hãy viết chi tiết:
+1.  **Tiêu đề Shorts:** Ngắn gọn, giật tít.
+2.  **The Hook (0-3s):** Câu mở đầu video. *Bắt buộc phải tuân thủ kiểu "${data.hook_style}"*.
+3.  **Nội dung chính (15-45s):** Tóm tắt cực nhanh kiến thức.
+4.  **CTA (Call to Action):** Câu nói để dẫn người xem sang video dài (Ví dụ: "Xem bản full ở nút tam giác bên dưới...").
+
+**Mục tiêu:** Dùng Shorts để kéo traffic vào xem video dài và đăng ký kênh.
+`
+  },
+
   // --- FINANCE & TRADING (NEW) ---
   {
     id: "fin_chart_analysis",

@@ -46,7 +46,9 @@ import {
   Calculator,
   Newspaper,
   Coins,
-  Code2
+  Code2,
+  Smartphone,
+  Megaphone
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -100,7 +102,10 @@ const IconMap: Record<string, React.FC<{ className?: string }>> = {
   "calculator": Calculator,
   "newspaper": Newspaper,
   "coins": Coins,
-  "code-2": Code2
+  "code-2": Code2,
+  // New Social Icons
+  "smartphone": Smartphone,
+  "megaphone": Megaphone
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ 

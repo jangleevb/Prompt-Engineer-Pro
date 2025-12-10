@@ -41,15 +41,22 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
     setInputs([...inputs, { id, label: '', placeholder: '', type: 'text' }]);
   };
 
-  const updateInput = (index: number, field: keyof InputConfig, value: string) => {
+  const updateInput = (index: number, field: keyof InputConfig, value: any) => {
     const newInputs = [...inputs];
-    // specific cast because type can only be 'text' | 'textarea' | 'image'
-    if (field === 'type') {
-       (newInputs[index] as any)[field] = value;
-    } else {
-       (newInputs[index] as any)[field] = value;
-    }
+    (newInputs[index] as any)[field] = value;
     setInputs(newInputs);
+  };
+  
+  // Handle options update for Select type
+  const updateInputOptions = (index: number, optionsString: string) => {
+     const options = optionsString.split(',').map(s => {
+         const trimmed = s.trim();
+         return { label: trimmed, value: trimmed };
+     }).filter(o => o.value);
+     
+     const newInputs = [...inputs];
+     newInputs[index].options = options;
+     setInputs(newInputs);
   };
 
   const removeInput = (index: number) => {
@@ -182,45 +189,58 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                   onDragEnter={() => handleDragEnter(idx)}
                   onDragEnd={handleDragEnd}
                   onDragOver={(e) => e.preventDefault()} // Essential to allow drop
-                  className={`flex gap-2 items-start bg-slate-900 p-2 rounded border border-slate-800 transition-all ${
+                  className={`flex flex-col gap-2 bg-slate-900 p-2 rounded border border-slate-800 transition-all ${
                     draggedIndex === idx ? 'opacity-40 border-dashed border-sky-500 bg-slate-800' : 'hover:border-slate-600'
                   }`}
                 >
-                  {/* Drag Handle */}
-                  <div className="mt-2 text-slate-600 cursor-grab active:cursor-grabbing hover:text-slate-400 p-1" title="Kéo để thay đổi thứ tự">
-                    <GripVertical className="w-4 h-4" />
-                  </div>
+                  <div className="flex gap-2 items-start">
+                      {/* Drag Handle */}
+                      <div className="mt-2 text-slate-600 cursor-grab active:cursor-grabbing hover:text-slate-400 p-1" title="Kéo để thay đổi thứ tự">
+                        <GripVertical className="w-4 h-4" />
+                      </div>
 
-                  <div className="flex-1 space-y-2">
-                    <div className="flex gap-2">
-                       <input 
-                          value={input.label} onChange={e => updateInput(idx, 'label', e.target.value)}
-                          className="flex-1 p-1.5 bg-slate-800 border border-slate-700 rounded text-xs text-white placeholder-slate-600 focus:border-sky-500 outline-none"
-                          placeholder="Label (VD: Tên khách hàng)"
-                        />
-                        <select 
-                          value={input.type} onChange={e => updateInput(idx, 'type', e.target.value)}
-                          className="p-1.5 bg-slate-800 border border-slate-700 rounded text-xs text-slate-300 focus:border-sky-500 outline-none"
-                        >
-                          <option value="text">Short Text</option>
-                          <option value="textarea">Long Text</option>
-                          <option value="image">Image Upload</option>
-                          <option value="file">File Upload</option>
-                        </select>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-slate-500 font-mono bg-slate-800 px-1 rounded border border-slate-700 select-all">ID: {input.id}</span>
-                        {input.type !== 'image' && (
-                          <span className="text-[10px] text-slate-500">Dùng <code className="text-sky-400 select-all">{`{{${input.id}}}`}</code> trong prompt</span>
-                        )}
-                        {input.type === 'image' && (
-                          <span className="text-[10px] text-orange-400 italic">Image input: Không dùng trong text prompt, sẽ tự động đính kèm.</span>
-                        )}
-                    </div>
+                      <div className="flex-1 space-y-2">
+                        <div className="flex gap-2">
+                          <input 
+                              value={input.label} onChange={e => updateInput(idx, 'label', e.target.value)}
+                              className="flex-1 p-1.5 bg-slate-800 border border-slate-700 rounded text-xs text-white placeholder-slate-600 focus:border-sky-500 outline-none"
+                              placeholder="Label (VD: Tên khách hàng)"
+                            />
+                            <select 
+                              value={input.type} onChange={e => updateInput(idx, 'type', e.target.value)}
+                              className="p-1.5 bg-slate-800 border border-slate-700 rounded text-xs text-slate-300 focus:border-sky-500 outline-none"
+                            >
+                              <option value="text">Short Text</option>
+                              <option value="textarea">Long Text</option>
+                              <option value="select">Dropdown (Chọn)</option>
+                              <option value="image">Image Upload</option>
+                              <option value="file">File Upload</option>
+                            </select>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-slate-500 font-mono bg-slate-800 px-1 rounded border border-slate-700 select-all">ID: {input.id}</span>
+                            {input.type !== 'image' && (
+                              <span className="text-[10px] text-slate-500">Dùng <code className="text-sky-400 select-all">{`{{${input.id}}}`}</code> trong prompt</span>
+                            )}
+                        </div>
+                      </div>
+                      <button onClick={() => removeInput(idx)} className="text-slate-500 hover:text-red-400 p-1 mt-1" title="Xóa input này">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                   </div>
-                  <button onClick={() => removeInput(idx)} className="text-slate-500 hover:text-red-400 p-1 mt-1" title="Xóa input này">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  
+                  {/* Additional settings for Select type */}
+                  {input.type === 'select' && (
+                       <div className="ml-7">
+                           <input 
+                              value={input.options?.map(o => o.value).join(', ') || ''} 
+                              onChange={e => updateInputOptions(idx, e.target.value)}
+                              className="w-full p-1.5 bg-slate-800 border border-slate-700 rounded text-xs text-white placeholder-slate-500 focus:border-sky-500 outline-none"
+                              placeholder="Nhập các lựa chọn, ngăn cách bằng dấu phẩy (VD: Tùy chọn A, Tùy chọn B, Tùy chọn C)"
+                           />
+                       </div>
+                  )}
+
                 </div>
               ))}
             </div>
