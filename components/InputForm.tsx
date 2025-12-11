@@ -1,6 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Template, InputConfig } from '../types';
-import { ArrowLeft, Upload, X, Image as ImageIcon, Wand2, Loader2, FileCode, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Upload, X, Image as ImageIcon, Wand2, Loader2, FileCode, ChevronDown, AlertCircle } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 
 interface InputFormProps {
@@ -14,6 +14,36 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange, api
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textFileInputRef = useRef<HTMLInputElement>(null);
   const [fillingId, setFillingId] = useState<string | null>(null);
+  
+  // Validation State
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  // Reset validation state when template changes
+  useEffect(() => {
+    setTouched({});
+  }, [template?.id]);
+
+  const handleBlur = (id: string) => {
+    setTouched(prev => ({ ...prev, [id]: true }));
+  };
+
+  const validate = (input: InputConfig, value: string): string | null => {
+    if (input.required) {
+        if (!value || value.trim() === '') return 'Trường này là bắt buộc';
+    }
+    if (value && input.validationRule === 'email') {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) return 'Email không đúng định dạng';
+    }
+    if (value && input.validationRule === 'url') {
+        try {
+           new URL(value);
+        } catch {
+           return 'URL không hợp lệ (cần có http:// hoặc https://)';
+        }
+    }
+    return null;
+  };
 
   const handleImageChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -22,6 +52,7 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange, api
       reader.onloadend = () => {
         // Result is a base64 data URL
         onChange(id, reader.result as string);
+        handleBlur(id); // Auto touch on file select
       };
       reader.readAsDataURL(file);
     }
@@ -34,6 +65,7 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange, api
       reader.onload = (event) => {
         const content = event.target?.result as string;
         onChange(id, content);
+        handleBlur(id); // Auto touch on file select
       };
       reader.readAsText(file);
     }
@@ -84,6 +116,8 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange, api
             // Remove surrounding quotes if Gemini adds them
             const cleanText = text.replace(/^"|"$/g, '');
             onChange(input.id, cleanText);
+            // Don't mark as touched immediately to allow user to edit, or maybe we should?
+            // Let's not touch it so validation doesn't scream immediately if AI generates something weird (unlikely)
         }
     } catch (err: any) {
         console.error("Magic fill error:", err);
@@ -111,11 +145,15 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange, api
 
   return (
     <div className="space-y-4 bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-lg">
-      {template.inputs.map(input => (
+      {template.inputs.map(input => {
+        const error = touched[input.id] ? validate(input, formData[input.id] || '') : null;
+        
+        return (
         <div key={input.id} className="group/input">
           <div className="flex justify-between items-center mb-1">
-              <label className="block text-xs font-bold text-slate-400 uppercase">
+              <label className="block text-xs font-bold text-slate-400 uppercase flex items-center gap-1">
                 {input.label}
+                {input.required && <span className="text-red-500" title="Bắt buộc">*</span>}
               </label>
 
               {/* Magic Fill Button - Only for text/textarea */}
@@ -139,17 +177,30 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange, api
           {input.type === 'textarea' ? (
             <textarea
               rows={4}
-              className="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-sm font-mono focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all placeholder-slate-600"
+              className={`w-full p-3 rounded-lg bg-slate-800 border text-slate-200 text-sm font-mono focus:outline-none focus:ring-1 transition-all placeholder-slate-600 ${
+                  error 
+                  ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-slate-700 focus:border-sky-400 focus:ring-sky-400'
+              }`}
               placeholder={input.placeholder}
               value={formData[input.id] || ''}
               onChange={(e) => onChange(input.id, e.target.value)}
+              onBlur={() => handleBlur(input.id)}
             />
           ) : input.type === 'select' ? (
              <div className="relative">
                 <select
-                  className="w-full p-3 pr-10 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-sm appearance-none focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
+                  className={`w-full p-3 pr-10 rounded-lg bg-slate-800 border text-slate-200 text-sm appearance-none focus:outline-none focus:ring-1 transition-all ${
+                      error 
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                      : 'border-slate-700 focus:border-sky-400 focus:ring-sky-400'
+                  }`}
                   value={formData[input.id] || ''}
-                  onChange={(e) => onChange(input.id, e.target.value)}
+                  onChange={(e) => {
+                      onChange(input.id, e.target.value);
+                      handleBlur(input.id);
+                  }}
+                  onBlur={() => handleBlur(input.id)}
                 >
                     <option value="" disabled>{input.placeholder || 'Chọn một tùy chọn...'}</option>
                     {input.options?.map((opt, idx) => (
@@ -161,7 +212,7 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange, api
           ) : input.type === 'image' ? (
             <div className="mt-1">
               {formData[input.id] ? (
-                <div className="relative group w-full h-48 bg-slate-950 rounded-lg border border-slate-700 overflow-hidden flex items-center justify-center">
+                <div className={`relative group w-full h-48 bg-slate-950 rounded-lg border overflow-hidden flex items-center justify-center ${error ? 'border-red-500' : 'border-slate-700'}`}>
                   <img 
                     src={formData[input.id]} 
                     alt="Uploaded" 
@@ -179,10 +230,12 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange, api
               ) : (
                 <div 
                   onClick={() => document.getElementById(`file-${input.id}`)?.click()}
-                  className="w-full h-32 border-2 border-dashed border-slate-700 rounded-lg hover:border-sky-500 hover:bg-slate-800/50 transition-all cursor-pointer flex flex-col items-center justify-center text-slate-500 group"
+                  className={`w-full h-32 border-2 border-dashed rounded-lg hover:bg-slate-800/50 transition-all cursor-pointer flex flex-col items-center justify-center text-slate-500 group ${
+                      error ? 'border-red-500/50 bg-red-900/10' : 'border-slate-700 hover:border-sky-500'
+                  }`}
                 >
-                  <Upload className="w-8 h-8 mb-2 group-hover:text-sky-400 transition-colors" />
-                  <span className="text-xs group-hover:text-slate-300">{input.placeholder || "Click để tải ảnh lên"}</span>
+                  <Upload className={`w-8 h-8 mb-2 transition-colors ${error ? 'text-red-400' : 'group-hover:text-sky-400'}`} />
+                  <span className={`text-xs ${error ? 'text-red-400' : 'group-hover:text-slate-300'}`}>{input.placeholder || "Click để tải ảnh lên"}</span>
                   <input 
                     id={`file-${input.id}`}
                     type="file" 
@@ -197,7 +250,7 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange, api
           ) : input.type === 'file' ? (
              <div className="mt-1">
                 {formData[input.id] ? (
-                    <div className="w-full p-3 bg-slate-800 rounded-lg border border-slate-700 flex flex-col gap-2">
+                    <div className={`w-full p-3 bg-slate-800 rounded-lg border flex flex-col gap-2 ${error ? 'border-red-500' : 'border-slate-700'}`}>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 text-sky-400">
                                 <FileCode className="w-5 h-5" />
@@ -214,10 +267,12 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange, api
                 ) : (
                     <div 
                         onClick={() => document.getElementById(`text-file-${input.id}`)?.click()}
-                        className="w-full h-24 border border-dashed border-slate-700 rounded-lg hover:border-sky-500 hover:bg-slate-800/50 transition-all cursor-pointer flex flex-col items-center justify-center text-slate-500 group"
+                        className={`w-full h-24 border border-dashed rounded-lg hover:bg-slate-800/50 transition-all cursor-pointer flex flex-col items-center justify-center text-slate-500 group ${
+                             error ? 'border-red-500/50 bg-red-900/10' : 'border-slate-700 hover:border-sky-500'
+                        }`}
                     >
-                        <FileCode className="w-6 h-6 mb-2 group-hover:text-sky-400 transition-colors" />
-                        <span className="text-xs group-hover:text-slate-300">{input.placeholder || "Upload Code File (.js, .py, .txt, Dockerfile...)"}</span>
+                        <FileCode className={`w-6 h-6 mb-2 transition-colors ${error ? 'text-red-400' : 'group-hover:text-sky-400'}`} />
+                        <span className={`text-xs ${error ? 'text-red-400' : 'group-hover:text-slate-300'}`}>{input.placeholder || "Upload Code File (.js, .py, .txt, Dockerfile...)"}</span>
                         <input 
                             id={`text-file-${input.id}`}
                             type="file" 
@@ -231,14 +286,26 @@ const InputForm: React.FC<InputFormProps> = ({ template, formData, onChange, api
           ) : (
             <input
               type="text"
-              className="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-sm focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all placeholder-slate-600"
+              className={`w-full p-3 rounded-lg bg-slate-800 border text-slate-200 text-sm focus:outline-none focus:ring-1 transition-all placeholder-slate-600 ${
+                  error 
+                  ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                  : 'border-slate-700 focus:border-sky-400 focus:ring-sky-400'
+              }`}
               placeholder={input.placeholder}
               value={formData[input.id] || ''}
               onChange={(e) => onChange(input.id, e.target.value)}
+              onBlur={() => handleBlur(input.id)}
             />
           )}
+
+          {error && (
+              <div className="flex items-center gap-1.5 text-red-400 text-[10px] mt-1.5 animate-in slide-in-from-top-1">
+                  <AlertCircle className="w-3 h-3" />
+                  <span>{error}</span>
+              </div>
+          )}
         </div>
-      ))}
+      )})}
     </div>
   );
 };

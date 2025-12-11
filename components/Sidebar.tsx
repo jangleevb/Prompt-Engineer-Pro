@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Template, SavedPrompt, TemplateSource } from '../types';
 import { 
   Brain, 
@@ -48,7 +48,10 @@ import {
   Coins,
   Code2,
   Smartphone,
-  Megaphone
+  Megaphone,
+  Sparkles,
+  ArrowRight,
+  Hash
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -108,6 +111,8 @@ const IconMap: Record<string, React.FC<{ className?: string }>> = {
   "megaphone": Megaphone
 };
 
+const POPULAR_TAGS = ["SEO", "Marketing", "Coding", "Email", "YouTube", "TikTok", "Business", "Design"];
+
 const Sidebar: React.FC<SidebarProps> = ({ 
   templates, 
   savedPrompts, 
@@ -126,7 +131,20 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [activeTab, setActiveTab] = useState<'library' | 'saved'>('library');
   const [sourceFilter, setSourceFilter] = useState<'all' | TemplateSource>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsSearchFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Filter templates based on search term AND source
   const filteredTemplates = useMemo(() => {
@@ -149,6 +167,12 @@ const Sidebar: React.FC<SidebarProps> = ({
     return result;
   }, [templates, searchTerm, sourceFilter]);
 
+  // Suggestions for autocomplete (Top 5 matches)
+  const suggestionTemplates = useMemo(() => {
+    if (!searchTerm) return [];
+    return filteredTemplates.slice(0, 5);
+  }, [filteredTemplates, searchTerm]);
+
   // Group templates by category
   const groupedTemplates = useMemo(() => {
     const groups: Record<string, Template[]> = {};
@@ -160,6 +184,20 @@ const Sidebar: React.FC<SidebarProps> = ({
   }, [filteredTemplates]);
 
   const categories = Object.keys(groupedTemplates);
+
+  const handleSuggestionClick = (template: Template) => {
+    onSelectTemplate(template);
+    setIsSearchFocused(false);
+    onCloseMobile();
+    // Optional: Keep search term or clear it? Let's keep it for context but user sees the selected one.
+    // setSearchTerm(''); 
+  };
+
+  const handleTagClick = (tag: string) => {
+    setSearchTerm(tag);
+    // Keep focus to show results
+    setIsSearchFocused(false);
+  };
 
   return (
     <>
@@ -178,7 +216,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           ${isOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 md:translate-x-0 md:opacity-100'}
         `}
       >
-        <div className="p-4 border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm">
+        <div className="p-4 border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm z-50">
           <div className="flex justify-between items-center mb-5">
               <div>
                   <h1 className="text-xl font-extrabold tracking-tight flex items-center text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-indigo-400">
@@ -189,16 +227,83 @@ const Sidebar: React.FC<SidebarProps> = ({
               <button className="md:hidden text-slate-400 hover:text-white p-1" onClick={onCloseMobile}>&times;</button>
           </div>
           
-          {/* Search Bar */}
-          <div className="relative mb-4 group">
+          {/* Search Bar with Suggestions */}
+          <div className="relative mb-4 group" ref={searchContainerRef}>
             <input 
               type="text"
               placeholder="Tìm kiếm templates..."
               value={searchTerm}
+              onFocus={() => setIsSearchFocused(true)}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-slate-800/80 border border-slate-700 text-slate-200 text-xs rounded-lg pl-9 pr-3 py-2.5 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 placeholder-slate-500 transition-all group-hover:bg-slate-800"
             />
             <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5 group-hover:text-slate-400 transition-colors" />
+            
+            {/* Clear Button */}
+            {searchTerm && (
+               <button 
+                onClick={() => { setSearchTerm(''); setIsSearchFocused(true); }}
+                className="absolute right-2 top-2.5 text-slate-500 hover:text-white"
+               >
+                 <Trash2 className="w-4 h-4" />
+               </button>
+            )}
+
+            {/* Suggestions Dropdown */}
+            {isSearchFocused && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-[#1e293b] border border-slate-700 rounded-lg shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 z-[60]">
+                {searchTerm ? (
+                  // Mode: Autocomplete Results
+                  <>
+                    <div className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-800/50 flex justify-between items-center">
+                       <span>Gợi ý nhanh</span>
+                       <span className="text-[9px] bg-sky-500/20 text-sky-400 px-1.5 py-0.5 rounded-full">{filteredTemplates.length} results</span>
+                    </div>
+                    {suggestionTemplates.length > 0 ? (
+                      <div>
+                        {suggestionTemplates.map(t => {
+                           const Icon = IconMap[t.iconName] || Terminal;
+                           return (
+                             <button
+                               key={t.id}
+                               onClick={() => handleSuggestionClick(t)}
+                               className="w-full text-left px-3 py-2.5 text-xs text-slate-300 hover:bg-sky-600 hover:text-white flex items-center gap-2 transition-colors border-b border-slate-700/50 last:border-0"
+                             >
+                               <Icon className="w-3.5 h-3.5 opacity-70" />
+                               <span className="truncate">{t.title}</span>
+                               <ArrowRight className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-100" />
+                             </button>
+                           )
+                        })}
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center text-slate-500 text-xs italic">
+                        Không tìm thấy kết quả phù hợp.
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  // Mode: Popular Tags / Recommendations
+                  <div className="p-3">
+                    <div className="flex items-center gap-2 mb-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      <Sparkles className="w-3 h-3 text-yellow-500" />
+                      <span>Từ khóa phổ biến</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {POPULAR_TAGS.map(tag => (
+                        <button
+                          key={tag}
+                          onClick={() => handleTagClick(tag)}
+                          className="px-2 py-1 bg-slate-800 hover:bg-indigo-600 border border-slate-700 hover:border-indigo-500 rounded text-[10px] text-slate-300 hover:text-white transition-all flex items-center gap-1"
+                        >
+                          <Hash className="w-2.5 h-2.5 opacity-50" /> {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Main Tabs */}

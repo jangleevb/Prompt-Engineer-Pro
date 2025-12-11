@@ -13,6 +13,8 @@ export interface InputConfig {
   placeholder: string;
   type: 'text' | 'textarea' | 'image' | 'file' | 'select';
   options?: SelectOption[]; // For select type
+  required?: boolean; // Validation: Is field required?
+  validationRule?: 'email' | 'url'; // Validation: Specific format check
 }
 
 export interface Template {

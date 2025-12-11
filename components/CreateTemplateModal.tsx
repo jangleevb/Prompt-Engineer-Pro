@@ -217,11 +217,39 @@ const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({
                               <option value="file">File Upload</option>
                             </select>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-slate-500 font-mono bg-slate-800 px-1 rounded border border-slate-700 select-all">ID: {input.id}</span>
-                            {input.type !== 'image' && (
-                              <span className="text-[10px] text-slate-500">Dùng <code className="text-sky-400 select-all">{`{{${input.id}}}`}</code> trong prompt</span>
-                            )}
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] text-slate-500 font-mono bg-slate-800 px-1 rounded border border-slate-700 select-all">ID: {input.id}</span>
+                                {input.type !== 'image' && (
+                                <span className="text-[10px] text-slate-500">Dùng <code className="text-sky-400 select-all">{`{{${input.id}}}`}</code> trong prompt</span>
+                                )}
+                            </div>
+
+                            {/* Validation Controls */}
+                            <div className="flex items-center gap-3">
+                                <label className="flex items-center gap-1.5 cursor-pointer bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 hover:border-slate-600">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={!!input.required} 
+                                        onChange={e => updateInput(idx, 'required', e.target.checked)}
+                                        className="w-3 h-3 rounded bg-slate-700 border-slate-600 text-sky-500 focus:ring-sky-500 focus:ring-offset-slate-900"
+                                    />
+                                    <span className="text-[10px] text-slate-300 select-none">Bắt buộc</span>
+                                </label>
+                                
+                                {input.type === 'text' && (
+                                    <select
+                                        value={input.validationRule || ''}
+                                        onChange={e => updateInput(idx, 'validationRule', e.target.value || undefined)}
+                                        className="p-0.5 px-1 bg-slate-800 border border-slate-700 rounded text-[10px] text-slate-300 focus:border-sky-500 outline-none"
+                                        title="Quy tắc kiểm tra định dạng"
+                                    >
+                                        <option value="">Không kiểm tra định dạng</option>
+                                        <option value="email">Email</option>
+                                        <option value="url">URL</option>
+                                    </select>
+                                )}
+                            </div>
                         </div>
                       </div>
                       <button onClick={() => removeInput(idx)} className="text-slate-500 hover:text-red-400 p-1 mt-1" title="Xóa input này">

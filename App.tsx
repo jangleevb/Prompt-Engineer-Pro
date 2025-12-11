@@ -5,6 +5,7 @@ import OutputDisplay from './components/OutputDisplay';
 import TacticBox from './components/TacticBox';
 import CreateTemplateModal from './components/CreateTemplateModal';
 import LoginModal from './components/LoginModal';
+import ApiKeyModal from './components/ApiKeyModal';
 import { TEMPLATES } from './constants';
 import { Template, SavedPrompt, CustomTemplateData } from './types';
 import { Menu, UserCircle, Key, Pencil, Trash2 } from 'lucide-react';
@@ -25,6 +26,7 @@ const App: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [apiKey, setApiKey] = useState<string>('');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
 
   useEffect(() => {
     let unsubscribe: () => void = () => {};
@@ -344,21 +346,60 @@ const App: React.FC = () => {
   const handleFetchOnlineTemplates = async () => {
     setIsFetchingOnline(true);
     try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
         const mockOnlineData: CustomTemplateData[] = [
             {
                 id: "online_seo_expert",
-                title: "SEO Keyword Researcher (Online)",
-                desc: "Từ cộng đồng: Nghiên cứu từ khóa long-tail.",
+                title: "SEO Content Master",
+                desc: "Lập dàn ý bài viết chuẩn SEO chi tiết từ từ khóa chính.",
                 category: "Marketing",
-                tags: ["SEO", "Community"],
-                inputs: [{ id: "topic", label: "Chủ đề", placeholder: "Giày chạy bộ", type: "text" }],
-                templateString: "Hãy đóng vai chuyên gia SEO. Nghiên cứu 10 từ khóa long-tail cho chủ đề: {{topic}}."
+                tags: ["SEO", "Content", "Blog"],
+                inputs: [
+                    { id: "keyword", label: "Từ khóa chính", placeholder: "Ví dụ: Digital Marketing", type: "text" },
+                    { id: "target_audience", label: "Đối tượng đọc", placeholder: "Chủ doanh nghiệp nhỏ", type: "text" }
+                ],
+                templateString: "Bạn là chuyên gia SEO Content. Hãy lập dàn ý chi tiết cho bài viết về từ khóa: '{{keyword}}'.\nĐối tượng mục tiêu: {{target_audience}}.\n\nYêu cầu:\n1. Tiêu đề hấp dẫn (chứa từ khóa).\n2. Cấu trúc H2, H3 rõ ràng.\n3. Các từ khóa phụ (LSI) cần chèn.\n4. Đề xuất Meta Description."
+            },
+            {
+                id: "online_job_interview",
+                title: "Mock Interviewer",
+                desc: "Phỏng vấn thử cho vị trí công việc cụ thể.",
+                category: "Career",
+                tags: ["Interview", "Soft Skills"],
+                inputs: [
+                    { id: "job_role", label: "Vị trí ứng tuyển", placeholder: "Senior React Developer", type: "text" },
+                    { id: "company_type", label: "Loại công ty", placeholder: "Product Company / Outsourcing", type: "text" }
+                ],
+                templateString: "Hãy đóng vai người phỏng vấn tại một {{company_type}}. Tôi đang ứng tuyển vị trí {{job_role}}.\n\nHãy đặt cho tôi 3 câu hỏi hóc búa: 1 về chuyên môn, 1 về kỹ năng mềm, và 1 về xử lý tình huống.\nSau đó, hãy đưa ra gợi ý cách trả lời ghi điểm."
+            },
+            {
+                id: "online_midjourney_v6",
+                title: "Midjourney V6 Photorealism",
+                desc: "Tạo prompt vẽ ảnh siêu thực tế với Midjourney V6.",
+                category: "Creative",
+                tags: ["Midjourney", "AI Art", "Photography"],
+                inputs: [
+                    { id: "subject", label: "Chủ thể", placeholder: "A cyberpunk street food vendor", type: "text" },
+                    { id: "lighting", label: "Ánh sáng/Thời gian", placeholder: "Neon lights, raining night", type: "text" }
+                ],
+                templateString: "/imagine prompt: {{subject}}. {{lighting}}. Photorealistic, 8k, highly detailed, shot on 35mm lens, cinematic depth of field, --v 6.0 --style raw"
+            },
+            {
+                id: "online_react_component",
+                title: "React + Tailwind Component",
+                desc: "Tạo Component React đẹp mắt với Tailwind CSS.",
+                category: "Coding",
+                tags: ["React", "Tailwind", "UI"],
+                inputs: [
+                    { id: "component_name", label: "Tên Component", placeholder: "PricingCard", type: "text" },
+                    { id: "features", label: "Mô tả tính năng", placeholder: "Có 3 gói giá, highlight gói ở giữa, responsive", type: "text" }
+                ],
+                templateString: "Viết code React (TypeScript) cho component {{component_name}}.\nSử dụng Tailwind CSS để style đẹp mắt, hiện đại.\n\nYêu cầu chức năng: {{features}}.\nChỉ trả về code, không cần giải thích."
             }
         ];
         
         setOnlineTemplatesData(mockOnlineData);
-        alert(`Đã tải thành công ${mockOnlineData.length} template từ Online Store.`);
+        // Removed alert for smoother UX, the UI updates automatically.
     } catch (error) {
         console.error("Failed to fetch online templates", error);
         alert("Không thể kết nối đến Online Store.");
@@ -482,32 +523,43 @@ const App: React.FC = () => {
                 </div>
             </div>
 
-            {/* Right Action: Login / Key */}
-            <button 
-                onClick={() => setIsLoginModalOpen(true)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all text-xs md:text-sm shadow-lg ${
-                    user 
-                    ? 'bg-slate-800/80 border-slate-700 hover:border-slate-500' 
-                    : 'bg-gradient-to-r from-indigo-600 to-sky-600 border-transparent hover:brightness-110 text-white'
-                }`}
-            >
-                {user ? (
-                   <img src={user.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'} alt="User" className="w-6 h-6 rounded-full border border-slate-500 shadow-sm" />
-                ) : (
-                   <UserCircle className="w-5 h-5" />
-                )}
-                
-                <div className="flex flex-col items-start leading-none gap-0.5">
-                    <span className={`font-bold ${user ? 'text-slate-200' : 'text-white'}`}>
-                        {user ? user.name : "Đăng nhập"}
-                    </span>
-                    {apiKey && user && (
-                        <span className="text-[9px] text-green-400 font-mono flex items-center gap-1">
-                            <Key className="w-2 h-2" /> KEY LINKED
-                        </span>
+            {/* Right Action: Login & Key Buttons */}
+            <div className="flex items-center gap-2">
+                {/* 1. API Key Button */}
+                <button 
+                   onClick={() => setIsApiKeyModalOpen(true)}
+                   className={`flex items-center justify-center p-2 rounded-full border transition-all shadow-lg ${
+                       apiKey 
+                       ? 'bg-indigo-900/50 border-indigo-500/50 text-indigo-400 hover:bg-indigo-800/50 hover:text-white' 
+                       : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
+                   }`}
+                   title={apiKey ? "Cấu hình API Key (Đã kết nối)" : "Chưa cấu hình API Key"}
+                >
+                   <Key className="w-5 h-5" />
+                </button>
+
+                {/* 2. User Profile Button */}
+                <button 
+                    onClick={() => setIsLoginModalOpen(true)}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all text-xs md:text-sm shadow-lg ${
+                        user 
+                        ? 'bg-slate-800/80 border-slate-700 hover:border-slate-500' 
+                        : 'bg-gradient-to-r from-indigo-600 to-sky-600 border-transparent hover:brightness-110 text-white'
+                    }`}
+                >
+                    {user ? (
+                    <img src={user.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'} alt="User" className="w-6 h-6 rounded-full border border-slate-500 shadow-sm" />
+                    ) : (
+                    <UserCircle className="w-5 h-5" />
                     )}
-                </div>
-            </button>
+                    
+                    <div className="hidden md:flex flex-col items-start leading-none gap-0.5">
+                        <span className={`font-bold ${user ? 'text-slate-200' : 'text-white'}`}>
+                            {user ? user.name : "Đăng nhập"}
+                        </span>
+                    </div>
+                </button>
+            </div>
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 scroll-smooth custom-scrollbar">
@@ -583,15 +635,21 @@ const App: React.FC = () => {
         />
       )}
 
-      {/* Login & API Modal */}
+      {/* User Auth Modal */}
       <LoginModal 
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
         user={user}
         onLogin={handleLogin}
         onLogout={handleLogout}
+      />
+
+      {/* API Key Modal */}
+      <ApiKeyModal
+        isOpen={isApiKeyModalOpen}
+        onClose={() => setIsApiKeyModalOpen(false)}
         apiKey={apiKey}
-        onSaveKey={handleSaveApiKey}
+        onSave={handleSaveApiKey}
       />
     </div>
   );

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Terminal, Copy, Check, ExternalLink, Save, Download, Play, Sparkles, AlertCircle, Key, Image as ImageIcon } from 'lucide-react';
+import { Terminal, Copy, Check, ExternalLink, Save, Download, Play, Sparkles, AlertCircle, Image as ImageIcon } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface OutputDisplayProps {
   promptText: string;
@@ -10,6 +12,81 @@ interface OutputDisplayProps {
   attachedImages?: string[]; // Array of base64 data URLs
   apiKey?: string;
 }
+
+// Internal Component for Individual Code Blocks
+const CodeBlock = ({ language, value }: { language: string, value: string }) => {
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleCopy = async () => {
+    if (!navigator.clipboard) {
+        // Fallback for older browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = value;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+        return;
+    }
+    
+    try {
+      await navigator.clipboard.writeText(value);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy!', err);
+    }
+  };
+
+  return (
+    <div className="relative group/code my-5 rounded-lg overflow-hidden border border-slate-700/60 shadow-xl bg-[#1e1e1e]">
+      {/* Header Bar */}
+      <div className="flex items-center justify-between bg-[#2d2d2d] px-4 py-2 border-b border-slate-700/50">
+        <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+          {language || 'text'}
+        </span>
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-1.5 text-[10px] text-slate-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-2 py-1 rounded"
+          title="Copy Code"
+        >
+          {isCopied ? (
+            <>
+              <Check className="w-3 h-3 text-emerald-400" />
+              <span className="text-emerald-400 font-bold">Copied!</span>
+            </>
+          ) : (
+            <>
+              <Copy className="w-3 h-3" />
+              <span>Copy</span>
+            </>
+          )}
+        </button>
+      </div>
+      
+      {/* Syntax Highlighter */}
+      <SyntaxHighlighter
+        style={vscDarkPlus}
+        language={language}
+        PreTag="div"
+        customStyle={{
+          margin: 0,
+          padding: '1.25rem',
+          background: 'transparent',
+          fontSize: '0.85rem',
+          lineHeight: '1.5',
+          fontFamily: "'JetBrains Mono', monospace",
+        }}
+        wrapLines={true}
+        wrapLongLines={true} // Wrap long lines to avoid horizontal scrollbar hell on mobile
+      >
+        {value}
+      </SyntaxHighlighter>
+    </div>
+  );
+};
 
 const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave, attachedImages = [], apiKey }) => {
   const [copied, setCopied] = useState(false);
@@ -21,50 +98,14 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const copyToClipboardFallback = (text: string) => {
-    try {
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      
-      // Ensure textarea is part of DOM but hidden
-      textArea.style.position = "fixed";
-      textArea.style.left = "-9999px";
-      textArea.style.top = "0";
-      document.body.appendChild(textArea);
-      
-      textArea.focus();
-      textArea.select();
-      
-      const successful = document.execCommand('copy');
-      document.body.removeChild(textArea);
-      
-      if (successful) {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } else {
-        throw new Error("execCommand copy failed");
-      }
-    } catch (fallbackErr) {
-      console.error('Copy failed:', fallbackErr);
-      alert("Không thể copy tự động. Vui lòng bôi đen và nhấn Ctrl+C.");
-    }
-  };
-
   const performCopy = async (text: string) => {
     if (!text) return;
-    
-    // Check if the Clipboard API is supported and if the document has focus.
-    if (navigator.clipboard && document.hasFocus()) {
-      try {
-        await navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        console.warn('Navigator clipboard failed, using fallback.', err);
-        copyToClipboardFallback(text);
-      }
-    } else {
-      copyToClipboardFallback(text);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.warn('Navigator clipboard failed.', err);
     }
   };
 
@@ -119,7 +160,6 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
             const parts: any[] = [{ text: promptText }];
             
             attachedImages.forEach(dataUrl => {
-                // Format: data:image/png;base64,.....
                 const [metadata, base64] = dataUrl.split(';base64,');
                 const mimeType = metadata.split(':')[1];
                 
@@ -133,7 +173,6 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
 
             contents = { parts: parts };
         } else {
-            // Text only request
             contents = promptText;
         }
 
@@ -214,10 +253,10 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
                 : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
               }
             `}
-            title="Sao chép"
+            title="Sao chép toàn bộ"
           >
             {copied ? <Check className="w-3 h-3 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
-            Copy
+            Copy All
           </button>
 
           <button 
@@ -272,12 +311,12 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
                             </div>
                         </div>
                     )}
-                    <div className="font-mono text-sm text-slate-300 whitespace-pre-wrap break-words pb-4">
+                    <div className="font-mono text-sm text-slate-300 whitespace-pre-wrap break-words pb-4 leading-relaxed">
                         {promptText || <span className="text-slate-600 italic">// Prompt sẽ xuất hiện ở đây...</span>}
                     </div>
                 </div>
             ) : (
-                <div className="text-sm text-slate-300 leading-relaxed markdown-content">
+                <div className="text-sm text-slate-300 leading-7 markdown-content">
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center h-full text-slate-500 space-y-4">
                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500"></div>
@@ -295,30 +334,35 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ promptText, title, onSave
                         <ReactMarkdown 
                             components={{
                                 code({node, inline, className, children, ...props}: any) {
-                                    return !inline ? (
-                                        <div className="bg-slate-900 rounded-md p-3 my-2 border border-slate-800 font-mono text-xs overflow-x-auto relative group/code">
-                                             <button 
-                                                onClick={() => performCopy(String(children).replace(/\n$/, ''))}
-                                                className="absolute top-2 right-2 p-1.5 bg-slate-800 text-slate-400 hover:text-white rounded opacity-0 group-hover/code:opacity-100 transition-opacity"
-                                                title="Copy Code"
-                                             >
-                                                <Copy className="w-3 h-3" />
-                                             </button>
-                                            <code {...props}>{children}</code>
-                                        </div>
+                                    const match = /language-(\w+)/.exec(className || '');
+                                    const codeString = String(children).replace(/\n$/, '');
+
+                                    return !inline && match ? (
+                                        <CodeBlock language={match[1]} value={codeString} />
                                     ) : (
-                                        <code className="bg-slate-800 px-1 py-0.5 rounded font-mono text-xs text-sky-300" {...props}>
+                                        <code className="bg-slate-800 px-1.5 py-0.5 rounded font-mono text-xs text-sky-300 border border-slate-700" {...props}>
                                             {children}
                                         </code>
                                     )
                                 },
-                                h1: ({node, ...props}) => <h1 className="text-xl font-bold text-white mb-4 border-b border-slate-700 pb-2" {...props} />,
-                                h2: ({node, ...props}) => <h2 className="text-lg font-bold text-white mt-6 mb-3" {...props} />,
-                                h3: ({node, ...props}) => <h3 className="text-md font-bold text-sky-400 mt-4 mb-2" {...props} />,
-                                ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-1 my-3 text-slate-300" {...props} />,
-                                ol: ({node, ...props}) => <ol className="list-decimal list-inside space-y-1 my-3 text-slate-300" {...props} />,
-                                p: ({node, ...props}) => <p className="mb-3" {...props} />,
-                                blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-slate-600 pl-4 italic text-slate-400 my-4" {...props} />,
+                                h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-white mb-6 border-b border-slate-800 pb-3 mt-2" {...props} />,
+                                h2: ({node, ...props}) => <h2 className="text-xl font-bold text-sky-100 mt-8 mb-4 flex items-center before:content-['#'] before:text-sky-500 before:mr-2" {...props} />,
+                                h3: ({node, ...props}) => <h3 className="text-lg font-bold text-sky-400 mt-6 mb-3" {...props} />,
+                                ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-2 my-4 text-slate-300 pl-2" {...props} />,
+                                ol: ({node, ...props}) => <ol className="list-decimal list-inside space-y-2 my-4 text-slate-300 pl-2" {...props} />,
+                                p: ({node, ...props}) => <p className="mb-4 text-slate-300 leading-7" {...props} />,
+                                blockquote: ({node, ...props}) => (
+                                    <blockquote className="border-l-4 border-sky-500/50 bg-sky-900/10 pl-4 py-2 pr-2 italic text-slate-400 my-6 rounded-r-md" {...props} />
+                                ),
+                                table: ({node, ...props}) => (
+                                    <div className="overflow-x-auto my-6 rounded-lg border border-slate-700">
+                                        <table className="min-w-full divide-y divide-slate-700 bg-slate-900/50" {...props} />
+                                    </div>
+                                ),
+                                th: ({node, ...props}) => <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider bg-slate-800" {...props} />,
+                                td: ({node, ...props}) => <td className="px-4 py-3 text-sm text-slate-400 border-t border-slate-800" {...props} />,
+                                a: ({node, ...props}) => <a className="text-sky-400 hover:text-sky-300 hover:underline transition-colors" target="_blank" rel="noopener noreferrer" {...props} />,
+                                strong: ({node, ...props}) => <strong className="font-bold text-white" {...props} />,
                             }}
                         >
                             {result}
