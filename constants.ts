@@ -184,6 +184,39 @@ Hãy đề xuất **5 Ý tưởng Shorts** cắt ra từ chủ đề lớn trên
 **Mục tiêu:** Dùng Shorts để kéo traffic vào xem video dài và đăng ký kênh.
 `
   },
+  {
+    id: "social_img_content",
+    source: "system",
+    category: "Social Selling",
+    iconName: "image",
+    title: "Viết Content Từ Ảnh (Visual Copywriting)",
+    desc: "AI nhìn ảnh sản phẩm/du lịch và viết caption thu hút theo đúng tâm trạng bức ảnh.",
+    tags: ["Copywriting", "Visual Analysis", "Social Media"],
+    tactic: "Sử dụng **Visual Contextualization**. AI sẽ 'nhìn' bức ảnh để nắm bắt màu sắc, bối cảnh và cảm xúc (Vibe), từ đó viết ra caption không bị 'lệch tông' với hình ảnh.",
+    inputs: [
+      { id: "image", label: "Upload ảnh sản phẩm/bối cảnh", placeholder: "Tải ảnh lên...", type: "image" },
+      { id: "platform", label: "Nền tảng đăng", placeholder: "Facebook / Instagram", type: "text" },
+      { id: "goal", label: "Mục tiêu bài viết", placeholder: "Bán hàng, Tương tác, Kể chuyện...", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Social Media Copywriter chuyên nghiệp.
+**Task:** Viết caption cho bài đăng trên ${data.platform || 'Mạng xã hội'} dựa trên hình ảnh được cung cấp.
+
+**Mục tiêu:** ${data.goal || 'Tương tác'}
+
+**Yêu cầu Visual Analysis:**
+Hãy nhìn vào bức ảnh và phân tích:
+1. **Mood & Vibe:** Cảm xúc chủ đạo của bức ảnh là gì? (Sang trọng, Ấm cúng, Năng động...)
+2. **Details:** Có chi tiết nào thú vị trong ảnh để làm "Hook" không?
+
+**Yêu cầu Output:**
+Viết 2 phiên bản Caption:
+1. **Phiên bản "Soft Sell":** Kể chuyện nhẹ nhàng, lồng ghép sản phẩm khéo léo.
+2. **Phiên bản "Hard Sell":** Tập trung vào ưu đãi và kêu gọi mua hàng (nếu phù hợp với ảnh).
+
+*Lưu ý:* Sử dụng emoji phù hợp với màu sắc trong ảnh.
+`
+  },
 
   // --- FINANCE & TRADING (NEW) ---
   {
@@ -648,6 +681,36 @@ Dựa trên phân tích trên, hãy viết **3 Prompts** (bằng tiếng Anh) đ
 `
   },
   {
+    id: "creative_img_story",
+    source: "system",
+    category: "Creative & Media",
+    iconName: "sparkles",
+    title: "Sáng Tác Truyện Từ Tranh (Visual Storytelling)",
+    desc: "Biến bức ảnh của bạn thành một câu chuyện ngắn đầy cảm xúc hoặc một kịch bản phim kịch tính.",
+    tags: ["Storytelling", "Creative Writing", "Multimodal"],
+    tactic: "Sử dụng **Visual Narrative**. AI sẽ phân tích các chi tiết nhỏ trong ảnh (biểu cảm, ánh sáng, hậu cảnh) để suy luận ra cốt truyện (Backstory) và diễn biến tiếp theo.",
+    inputs: [
+      { id: "image", label: "Upload ảnh muốn kể chuyện", placeholder: "Tải ảnh lên...", type: "image" },
+      { id: "genre", label: "Thể loại truyện", placeholder: "Trinh thám, Lãng mạn, Kinh dị...", type: "text" },
+      { id: "length", label: "Độ dài mong muốn", placeholder: "Truyện cực ngắn (Flash fiction) / Dàn ý tiểu thuyết", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là một Nhà văn nổi tiếng và chuyên gia Kể chuyện qua hình ảnh (Visual Storyteller).
+**Task:** Hãy nhìn vào bức ảnh tôi cung cấp và sáng tác một câu chuyện dựa trên đó.
+
+**Thể loại:** ${data.genre || 'Tự do'}
+**Độ dài:** ${data.length || 'Truyện ngắn'}
+
+**Yêu cầu Sáng tạo:**
+1.  **Quan sát chi tiết:** Hãy bắt đầu bằng việc mô tả ngắn gọn không khí (Atmosphere) và chi tiết đắt giá nhất trong ảnh.
+2.  **Xây dựng nhân vật:** Nếu có người/vật trong ảnh, họ là ai? Họ đang nghĩ gì? Điều gì đã xảy ra ngay trước khoảnh khắc này?
+3.  **Cốt truyện:** Hãy viết một câu chuyện có mở đầu, cao trào và kết thúc.
+    - *Gợi ý:* Hãy tập trung vào cảm xúc (Show, don't just tell).
+
+**Tone:** Cuốn hút, giàu hình ảnh và cảm xúc.
+`
+  },
+  {
     id: "media_moodboard",
     source: "system",
     category: "Creative & Media",
@@ -875,6 +938,117 @@ Hãy viết 3 prompt tiếng Anh (English) tối ưu cho AI vẽ tranh (Midjourn
   },
 
   // --- CODER & TECH ---
+  {
+    id: "tech_sketch_to_app",
+    source: "system",
+    category: "Coder & Tech",
+    iconName: "pen-tool",
+    title: "Sketch to Full App Consultant",
+    desc: "Phân tích ảnh phác thảo, gợi ý Tech Stack và lộ trình hoàn thiện App.",
+    tags: ["System Design", "UI/UX", "Consultant", "Image Analysis"],
+    tactic: "Sử dụng khả năng **Multimodal Analysis** và **System Architect Persona**. AI sẽ đóng vai một chuyên gia tư vấn kỹ thuật: Nhìn vào bản vẽ tay nguệch ngoạc của bạn, hiểu được luồng người dùng (User Flow), chỉ ra các tính năng còn thiếu (Missing Features), và đề xuất công nghệ phù hợp để biến nó thành hiện thực.",
+    inputs: [
+      { id: "sketch_image", label: "Upload ảnh phác thảo/Wireframe", placeholder: "Tải ảnh bản vẽ lên...", type: "image" },
+      { id: "app_desc", label: "Mô tả ý tưởng App", placeholder: "App đặt lịch cắt tóc, có tính năng chọn thợ...", type: "textarea" },
+      { id: "target_platform", label: "Nền tảng mục tiêu", placeholder: "Web (React), Mobile (Flutter), hay Cross-platform?", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Senior Product Manager và System Architect.
+**Task:** Phân tích bản phác thảo (Sketch) và ý tưởng ứng dụng để đưa ra tư vấn kỹ thuật toàn diện.
+
+**Context:**
+- **Mô tả ý tưởng:** ${data.app_desc || 'Chưa rõ'}
+- **Nền tảng mục tiêu:** ${data.target_platform || 'Web/Mobile'}
+
+**Yêu cầu Phân tích (Dựa trên hình ảnh & Mô tả):**
+
+1.  **Visual Breakdown (Phân tích giao diện):**
+    - Liệt kê các thành phần UI chính bạn nhìn thấy trong ảnh (Header, Sidebar, Buttons...).
+    - Dự đoán luồng người dùng (User Flow) dựa trên các mũi tên hoặc bố cục trong hình.
+
+2.  **Missing Features Analysis (Quan trọng):**
+    - Chỉ ra những tính năng quan trọng còn thiếu trong bản phác thảo để app hoạt động thực tế (Ví dụ: "Thiếu nút Back", "Chưa có chỗ hiển thị lỗi", "Quên tính năng Reset Password"...).
+
+3.  **Tech Stack Recommendation:**
+    - Đề xuất Frontend, Backend, Database phù hợp nhất cho loại app này. Giải thích tại sao?
+
+4.  **Implementation Roadmap:**
+    - Gợi ý các bước triển khai từ MVP đến bản hoàn chỉnh.
+
+**Kết luận:** Đưa ra 1 lời khuyên đắt giá nhất để dự án này thành công.
+`
+  },
+  {
+    id: "tech_img_to_code",
+    source: "system",
+    category: "Coder & Tech",
+    iconName: "code-2",
+    title: "Screenshot to Code (UI to Tailwind)",
+    desc: "Upload ảnh chụp màn hình hoặc thiết kế UI, AI sẽ viết prompt để tạo ra code React/Tailwind.",
+    tags: ["UI/UX", "Frontend", "Reverse Engineering"],
+    tactic: "Sử dụng **Visual Decomposition**. AI sẽ phân tách các thành phần UI (Header, Hero, Grid) và màu sắc từ ảnh, sau đó viết prompt yêu cầu Code chính xác.",
+    inputs: [
+      { id: "ui_image", label: "Upload ảnh UI Design", placeholder: "Tải ảnh thiết kế...", type: "image" },
+      { id: "tech_stack", label: "Tech Stack", placeholder: "React + Tailwind + Lucide Icons", type: "text" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Senior Frontend Engineer và UI/UX Specialist.
+**Task:** Hãy nhìn vào bức ảnh thiết kế UI (User Interface) được cung cấp và viết code để hiện thực hóa nó.
+
+**Tech Stack:** ${data.tech_stack || 'HTML + Tailwind CSS'}
+
+**Yêu cầu:**
+1.  **Analyze:** Phân tích bố cục (Layout), màu sắc (Colors), Font chữ và các thành phần (Components).
+2.  **Code Structure:** Viết code clean, sử dụng semantic tags.
+3.  **Styling:** Sử dụng Tailwind CSS để style giống thiết kế gốc nhất có thể. Chú ý padding, margin và shadow.
+4.  **Content:** Sử dụng nội dung text giả định (Lorem ipsum) hoặc text có trong ảnh nếu đọc được.
+
+*Lưu ý:* Nếu không thể nhìn rõ chi tiết, hãy sử dụng các best practices về UI hiện đại để điền vào chỗ trống.
+`
+  },
+  {
+    id: "tech_project_structure",
+    source: "system",
+    category: "Coder & Tech",
+    iconName: "folder-tree",
+    title: "Project Structure Generator",
+    desc: "Tạo cấu trúc thư mục dự án chuẩn (ASCII Tree) và sơ đồ quan hệ module (Mermaid).",
+    tags: ["Architecture", "Scaffolding", "Mermaid", "File System"],
+    tactic: "Sử dụng **Architectural Patterning**. AI sẽ đóng vai Tech Lead để đề xuất cấu trúc thư mục tối ưu cho quy mô dự án (MVP vs Enterprise), đảm bảo tính Scalable và Maintainable. Kết quả bao gồm cây thư mục ASCII để copy vào README và sơ đồ Mermaid để visualize.",
+    inputs: [
+      { id: "tech_stack", label: "Tech Stack / Framework", placeholder: "Next.js 14 (App Router), NestJS, Golang Clean Arch...", type: "text" },
+      { id: "scale", label: "Quy mô dự án", placeholder: "MVP Startup / Monolith / Microservices", type: "text" },
+      { id: "modules", label: "Các module chính (Optional)", placeholder: "Auth, Product, Cart, Payment, Analytics", type: "textarea" }
+    ],
+    generate: (data) => `
+**Role:** Bạn là Senior System Architect.
+**Task:** Thiết kế cấu trúc thư mục dự án (Project Directory Structure) cho: **${data.tech_stack || '[Tech Stack]'}**.
+
+**Context:**
+- **Quy mô:** ${data.scale || 'Tiêu chuẩn'}
+- **Modules/Features chính:** ${data.modules || 'Cơ bản'}
+
+**Yêu cầu Output (2 Phần):**
+
+**PHẦN 1: FILE TREE (ASCII Art)**
+Hãy tạo một cây thư mục dạng ASCII text (để tôi có thể copy vào file README.md).
+- Bao gồm các file config quan trọng (package.json, Dockerfile, env...).
+- Đặt tên folder theo chuẩn Best Practices của ${data.tech_stack}.
+- Comment ngắn gọn bên cạnh các folder quan trọng để giải thích tác dụng.
+
+**PHẦN 2: MODULE RELATIONSHIP (Mermaid Diagram)**
+Hãy viết code **Mermaid.js** (Graph TD) để minh họa mối quan hệ giữa các module hoặc luồng dữ liệu trong cấu trúc này.
+- Ví dụ: Controller -> Service -> Repository -> Database.
+- Hoặc: Module Auth -> Module User.
+
+\`\`\`mermaid
+graph TD;
+  ...code...
+\`\`\`
+
+**Giải thích:** Tại sao bạn chọn cấu trúc này? Nó giúp ích gì cho việc mở rộng (Scalability) sau này?
+`
+  },
   {
     id: "tech_code_analysis",
     source: "system",

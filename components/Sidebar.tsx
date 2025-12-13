@@ -51,7 +51,9 @@ import {
   Megaphone,
   Sparkles,
   ArrowRight,
-  Hash
+  Hash,
+  FolderTree,
+  PenTool
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -108,7 +110,11 @@ const IconMap: Record<string, React.FC<{ className?: string }>> = {
   "code-2": Code2,
   // New Social Icons
   "smartphone": Smartphone,
-  "megaphone": Megaphone
+  "megaphone": Megaphone,
+  // Tech Icons
+  "folder-tree": FolderTree,
+  "sparkles": Sparkles,
+  "pen-tool": PenTool
 };
 
 const POPULAR_TAGS = ["SEO", "Marketing", "Coding", "Email", "YouTube", "TikTok", "Business", "Design"];
